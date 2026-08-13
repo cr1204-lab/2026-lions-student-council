@@ -1177,17 +1177,25 @@ function renderReviewList(){
         <button class="btn small" data-resubmit="${escapeHtml(r.id)}">저장</button>
       </div>` : ''}
       ${status === '승인' && STATE.isAdmin ? `
-      <div class="purchase-panel">
-        <label><input type="checkbox" data-purchased-for="${escapeHtml(r.id)}" ${purchasedNow?'checked':''}> 구매 완료</label>
-        <label style="font-weight:400;">최종 구매 금액
-          <input type="number" min="0" data-amount-for="${escapeHtml(r.id)}" value="${r.final_amount || ''}" placeholder="원">
-        </label>
-        <button class="btn small" data-save-purchase="${escapeHtml(r.id)}">저장</button>
-        ${purchasedNow && r.final_amount ? `<span class="purchase-summary">✔ 구매확정 ${fmt(r.final_amount)}</span>` : ''}
+      <div class="purchase-panel" style="flex-direction:column; align-items:stretch;">
+        <div style="font-weight:700; color:var(--red); font-size:12.5px; margin-bottom:2px;">⚠ 구매내역서를 첨부하신 물품구매신청서와 대조해서, 품목과 수량이 맞게 구매되었는지 확인해주세요.</div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <label><input type="checkbox" data-purchased-for="${escapeHtml(r.id)}" ${purchasedNow?'checked':''}> 구매 완료</label>
+          <label style="font-weight:400;">최종 구매 금액
+            <input type="number" min="0" data-amount-for="${escapeHtml(r.id)}" value="${r.final_amount || ''}" placeholder="원">
+          </label>
+          <label style="font-weight:400;">구매내역서 <span class="hint">(선택, 학생 메일에 첨부돼요)</span>
+            <input type="file" data-receipt-for="${escapeHtml(r.id)}">
+          </label>
+          <button class="btn small" data-save-purchase="${escapeHtml(r.id)}">저장</button>
+          ${purchasedNow && r.final_amount ? `<span class="purchase-summary">✔ 구매확정 ${fmt(r.final_amount)}</span>` : ''}
+          ${r.receipt_file_url ? `<a class="file-link" href="${escapeHtml(r.receipt_file_url)}" target="_blank" rel="noopener">📎 구매내역서: ${escapeHtml(r.receipt_file_name||'')}</a>` : ''}
+        </div>
       </div>` : ''}
       ${status === '승인' && !STATE.isAdmin ? `
       <div class="meta">
         ${purchasedNow && r.final_amount ? `<span class="purchase-summary">✔ 구매확정 ${fmt(r.final_amount)}</span>` : `<span>아직 구매 확정 전이에요.</span>`}
+        ${r.receipt_file_url ? `<a class="file-link" href="${escapeHtml(r.receipt_file_url)}" target="_blank" rel="noopener">📎 구매내역서: ${escapeHtml(r.receipt_file_name||'')}</a>` : ''}
       </div>` : ''}
     </div>
   `;}).join('');
@@ -1295,13 +1303,23 @@ async function handleResubmit(id){
 async function handleSavePurchase(id){
   const checkboxEl = document.querySelector(`[data-purchased-for="${CSS.escape(id)}"]`);
   const amountEl = document.querySelector(`[data-amount-for="${CSS.escape(id)}"]`);
+  const receiptEl = document.querySelector(`[data-receipt-for="${CSS.escape(id)}"]`);
   const purchased = checkboxEl && checkboxEl.checked ? 'Y' : 'N';
   const amount = amountEl && amountEl.value ? Number(amountEl.value) : '';
   if(purchased === 'Y' && !amount){
     toast('구매 완료로 표시하려면 최종 구매 금액을 입력해주세요.');
     return;
   }
-  const result = await postToBackend('updateRequest', { id, purchased, final_amount: amount });
+  const receiptFile = receiptEl && receiptEl.files[0] ? receiptEl.files[0] : null;
+  if(receiptFile && receiptFile.size > MAX_FILE_BYTES){
+    toast('파일 용량이 너무 커요. 3.5MB 이하로 첨부해주세요.');
+    return;
+  }
+  const payload = { id, purchased, final_amount: amount };
+  if(receiptFile){
+    payload.receipt_file = fileToPayload(receiptFile, await readFileAsDataUrl(receiptFile));
+  }
+  const result = await postToBackend('updateRequest', payload);
   if(!result.ok){
     toast('저장에 실패했어요: ' + (result.error || '알 수 없는 오류'));
     return;
