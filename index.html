@@ -173,10 +173,6 @@
   .cal-day.today{ border-color:var(--brass); border-width:2px; background:var(--card); }
   .cal-day .num{ font-size:11px; font-weight:700; color:var(--ink-soft); }
   .cal-event{ font-size:10.5px; font-weight:700; padding:2px 5px; border-radius:5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  @media (max-width:640px){
-    .cal-day{ min-height:50px; }
-    .cal-event{ font-size:0; padding:0; height:6px; border-radius:3px; }
-  }
 
   .status-table{ width:100%; border-collapse:collapse; font-size:14px; }
   .status-table th{ text-align:left; font-weight:700; font-size:12px; letter-spacing:.03em; color:var(--ink-soft); text-transform:uppercase; padding:9px 12px; border-bottom:1.5px solid var(--ink); white-space:nowrap; }
@@ -234,6 +230,60 @@
   .login-error{ margin-top:14px; font-size:12px; color:var(--red); font-weight:700; display:none; }
   .capslock-warning{ margin:-4px 0 10px; font-size:12px; color:var(--amber); font-weight:700; text-align:left; display:none; }
   #appRoot{ display:none; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:640px){
+    .shell{ padding:18px 14px 60px; }
+    header.top{ flex-direction:column; align-items:flex-start; gap:12px; padding-bottom:14px; }
+    .signed-in-as{ width:100%; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .brand-logo{ height:36px; }
+    .brand h1{ font-size:20px; }
+    .brand .sub{ font-size:12.5px; }
+
+    nav.tabs{ gap:4px; margin-bottom:18px; }
+    nav.tabs button{ padding:8px 11px; font-size:12.5px; }
+
+    .section-title{ font-size:16px; }
+
+    /* Two-column form rows become one column so fields don't get squeezed */
+    .field-row{ grid-template-columns:1fr; gap:12px; }
+    .form-card{ padding:16px; max-width:100%; }
+    .info-box, .warn-box{ max-width:100%; padding:12px; }
+
+    .cat-grid{ gap:12px; }
+    .cat-card{ padding:16px; }
+    .cat-card .remain{ font-size:19px; }
+
+    .req-item{ padding:15px 14px; }
+    .req-item .event{ font-size:14.5px; }
+    .req-item .meta{ grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:5px 12px; font-size:12.5px; }
+    .req-item .file-group{ gap:6px; }
+    .file-link{ font-size:12px; padding:5px 10px; }
+
+    .review-panel, .purchase-panel{ gap:6px; }
+    .review-panel textarea{ min-width:100%; }
+    .resubmit-form{ padding:10px; }
+
+    .guideline-card{ padding:16px; max-height:280px; }
+    .guideline-list{ font-size:13px; }
+
+    .cal-card{ padding:14px 12px; }
+    .cal-grid{ gap:3px; }
+    .cal-dow{ font-size:10px; padding:2px 0 6px; }
+    .cal-day{ min-height:40px; padding:3px; border-radius:5px; }
+    .cal-event{ font-size:0; padding:0; height:6px; border-radius:3px; margin-top:2px; }
+    .cal-day .num{ font-size:10px; }
+    .cal-legend{ gap:8px 10px; font-size:11px; }
+    .cal-title{ font-size:14px; }
+
+    .status-table{ font-size:12.5px; }
+    .status-table th, .status-table td{ padding:8px 8px; }
+
+    .admin-summary{ padding:14px 16px; gap:14px 24px; }
+    .admin-summary .item .value{ font-size:18px; }
+
+    .login-card{ padding:26px 20px; }
+  }
 </style>
 </head>
 <body>
@@ -527,15 +577,22 @@
         </div>
         <div class="field-row">
           <div class="field">
-            <label>날짜</label>
-            <input type="date" id="bk_date" required>
+            <label>시작 날짜</label>
+            <input type="date" id="bk_startdate" required>
           </div>
           <div class="field">
-            <label>시작시간 · 종료시간</label>
-            <div style="display:flex; gap:8px;">
-              <input type="time" id="bk_start" required>
-              <input type="time" id="bk_end" required>
-            </div>
+            <label>종료 날짜</label>
+            <input type="date" id="bk_enddate" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>시작시간 <span class="hint">(시작일 기준)</span></label>
+            <input type="time" id="bk_start" required>
+          </div>
+          <div class="field">
+            <label>종료시간 <span class="hint">(종료일 기준)</span></label>
+            <input type="time" id="bk_end" required>
           </div>
         </div>
         <div class="field-row">
@@ -586,9 +643,15 @@
             <label>행사명</label>
             <input type="text" id="sc_event" placeholder="예: 신입생 OT" required>
           </div>
+        </div>
+        <div class="field-row">
           <div class="field">
-            <label>날짜</label>
-            <input type="date" id="sc_date" required>
+            <label>시작 날짜</label>
+            <input type="date" id="sc_startdate" required>
+          </div>
+          <div class="field">
+            <label>종료 날짜 <span class="hint">(선택, 안 하면 시작 날짜와 동일)</span></label>
+            <input type="date" id="sc_enddate">
           </div>
         </div>
         <div class="field-row">
@@ -932,7 +995,6 @@ function syncMinTime(startInputId, endInputId){
     }
   });
 }
-syncMinTime('bk_start','bk_end');
 syncMinTime('sc_start','sc_end');
 
 document.getElementById('reviewList').addEventListener('change', (e)=>{
@@ -1358,9 +1420,15 @@ document.getElementById('evidenceForm').addEventListener('submit', async (e)=>{
 /* ---------- Booking (대관 신청) ---------- */
 document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
+  const startDate = document.getElementById('bk_startdate').value;
+  const endDate = document.getElementById('bk_enddate').value;
   const startTime = document.getElementById('bk_start').value;
   const endTime = document.getElementById('bk_end').value;
-  if(startTime && endTime && startTime >= endTime){
+  if(startDate && endDate && endDate < startDate){
+    toast('종료 날짜는 시작 날짜보다 빠를 수 없어요.');
+    return;
+  }
+  if(startDate === endDate && startTime && endTime && startTime >= endTime){
     toast('종료시간은 시작시간보다 늦어야 해요.');
     return;
   }
@@ -1371,7 +1439,8 @@ document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
     const payload = {
       venue: document.getElementById('bk_venue').value.trim(),
       event_name: document.getElementById('bk_event').value.trim(),
-      date: document.getElementById('bk_date').value,
+      start_date: startDate,
+      end_date: endDate,
       start_time: startTime,
       end_time: endTime,
       requester_name: document.getElementById('bk_requester').value.trim(),
@@ -1399,13 +1468,14 @@ function renderBookingList(){
   const list = STATE.bookings
     .filter(b => !filter || b.status === filter)
     .slice()
-    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+    .sort((a,b)=>String(b.start_date||'').localeCompare(String(a.start_date||'')));
   if(list.length===0){
     el.innerHTML = `<div class="card empty"><div class="glyph">🏫</div>대관 신청 내역이 없어요.</div>`;
     return;
   }
   el.innerHTML = list.map(b=>{
     const status = b.status || '대기';
+    const dateLabel = b.start_date === b.end_date ? b.start_date : `${b.start_date||'-'} ~ ${b.end_date||'-'}`;
     return `
     <div class="card req-item" data-id="${escapeHtml(b.id)}">
       <div class="top-row">
@@ -1416,7 +1486,7 @@ function renderBookingList(){
         <span class="status-pill ${status}">${status}</span>
       </div>
       <div class="meta">
-        <span>날짜 ${b.date||'-'}</span>
+        <span>날짜 ${dateLabel}</span>
         <span>시간 ${b.start_time||'-'} ~ ${b.end_time||'-'}</span>
         <span>제출일 ${b.submitted_at||'-'}</span>
       </div>
@@ -1467,13 +1537,20 @@ document.getElementById('bookingFilterStatus').addEventListener('change', render
 /* ---------- Schedule (일정 공유) ---------- */
 document.getElementById('scheduleForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
+  const startDate = document.getElementById('sc_startdate').value;
+  const endDate = document.getElementById('sc_enddate').value || startDate;
+  if(endDate < startDate){
+    toast('종료 날짜는 시작 날짜보다 빠를 수 없어요.');
+    return;
+  }
   const submitBtn = e.target.querySelector('button[type=submit]');
   submitBtn.disabled = true;
   submitBtn.textContent = '등록 중...';
   try{
     const payload = {
       event_name: document.getElementById('sc_event').value.trim(),
-      date: document.getElementById('sc_date').value,
+      start_date: startDate,
+      end_date: endDate,
       start_time: document.getElementById('sc_start').value,
       end_time: document.getElementById('sc_end').value,
       venue: document.getElementById('sc_venue').value.trim(),
@@ -1495,13 +1572,16 @@ document.getElementById('scheduleForm').addEventListener('submit', async (e)=>{
 
 function renderScheduleList(){
   const el = document.getElementById('scheduleList');
-  const list = STATE.events.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  const list = STATE.events.slice().sort((a,b)=>String(a.start_date||'').localeCompare(String(b.start_date||'')));
   if(list.length===0){
     el.innerHTML = `<div class="card empty"><div class="glyph">🗓️</div>등록된 일정이 없어요.</div>`;
     return;
   }
-  el.innerHTML = list.map(ev=>`
-    <div class="card req-item">
+  el.innerHTML = list.map(ev=>{
+    const dateLabel = ev.start_date === ev.end_date ? ev.start_date : `${ev.start_date||'-'} ~ ${ev.end_date||'-'}`;
+    const canEdit = STATE.isAdmin || ev.category === STATE.myCategory;
+    return `
+    <div class="card req-item" data-id="${escapeHtml(ev.id)}">
       <div class="top-row">
         <div class="titles">
           <span class="event">${escapeHtml(ev.event_name)}</span>
@@ -1509,15 +1589,86 @@ function renderScheduleList(){
         </div>
       </div>
       <div class="meta">
-        <span>날짜 ${ev.date||'-'}</span>
+        <span>날짜 ${dateLabel}</span>
         ${ev.start_time ? `<span>시간 ${ev.start_time}${ev.end_time ? ' ~ ' + ev.end_time : ''}</span>` : ''}
         ${ev.venue ? `<span>장소 ${escapeHtml(ev.venue)}</span>` : ''}
       </div>
       ${ev.description ? `<div class="meta">${escapeHtml(ev.description)}</div>` : ''}
       <div class="meta">등록: ${escapeHtml(ev.created_by||'-')} · ${ev.created_at||'-'}</div>
+      ${canEdit ? `
+      <div class="review-panel">
+        <button class="btn outline small" data-ev-edit-toggle="${escapeHtml(ev.id)}">일정 수정하기</button>
+      </div>
+      <div class="resubmit-form" id="ev-edit-${escapeHtml(ev.id)}" style="display:none;">
+        <div class="field-row single">
+          <div class="field"><label>행사명</label><input type="text" data-ee-event="${escapeHtml(ev.id)}" value="${escapeHtml(ev.event_name)}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>시작 날짜</label><input type="date" data-ee-startdate="${escapeHtml(ev.id)}" value="${ev.start_date||''}"></div>
+          <div class="field"><label>종료 날짜</label><input type="date" data-ee-enddate="${escapeHtml(ev.id)}" value="${ev.end_date||''}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>시작시간</label><input type="time" data-ee-starttime="${escapeHtml(ev.id)}" value="${ev.start_time||''}"></div>
+          <div class="field"><label>종료시간</label><input type="time" data-ee-endtime="${escapeHtml(ev.id)}" value="${ev.end_time||''}"></div>
+        </div>
+        <div class="field-row single">
+          <div class="field"><label>장소</label><input type="text" data-ee-venue="${escapeHtml(ev.id)}" value="${escapeHtml(ev.venue||'')}"></div>
+        </div>
+        <div class="field-row single">
+          <div class="field"><label>설명</label><input type="text" data-ee-desc="${escapeHtml(ev.id)}" value="${escapeHtml(ev.description||'')}"></div>
+        </div>
+        <button class="btn small" data-ev-save="${escapeHtml(ev.id)}">저장</button>
+      </div>` : ''}
     </div>
-  `).join('');
+  `;}).join('');
+
+  el.querySelectorAll('[data-ev-edit-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-ev-edit-toggle');
+      const form = document.getElementById('ev-edit-'+id);
+      if(form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+  el.querySelectorAll('[data-ev-save]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleEditEvent(btn.getAttribute('data-ev-save')));
+  });
 }
+
+async function handleEditEvent(id){
+  const esc = CSS.escape(id);
+  const startDateEl = document.querySelector(`[data-ee-startdate="${esc}"]`);
+  const endDateEl = document.querySelector(`[data-ee-enddate="${esc}"]`);
+  if(startDateEl.value && endDateEl.value && endDateEl.value < startDateEl.value){
+    toast('종료 날짜는 시작 날짜보다 빠를 수 없어요.');
+    return;
+  }
+  const btn = document.querySelector(`[data-ev-save="${esc}"]`);
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+  try{
+    const payload = {
+      id,
+      event_name: document.querySelector(`[data-ee-event="${esc}"]`).value.trim(),
+      start_date: startDateEl.value,
+      end_date: endDateEl.value,
+      start_time: document.querySelector(`[data-ee-starttime="${esc}"]`).value,
+      end_time: document.querySelector(`[data-ee-endtime="${esc}"]`).value,
+      venue: document.querySelector(`[data-ee-venue="${esc}"]`).value.trim(),
+      description: document.querySelector(`[data-ee-desc="${esc}"]`).value.trim(),
+    };
+    const result = await postToBackend('updateEvent', payload);
+    if(!result.ok){
+      toast('일정 수정에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    toast('일정을 수정했어요.');
+    await refreshData();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '저장';
+  }
+}
+
 
 let calDate = new Date();
 
@@ -1558,7 +1709,7 @@ function renderScheduleCalendar(){
       cellDate = new Date(year, month, dayNum);
     }
     const dateStr = `${cellDate.getFullYear()}-${pad2(cellDate.getMonth()+1)}-${pad2(cellDate.getDate())}`;
-    const dayEvents = STATE.events.filter(ev => ev.date === dateStr);
+    const dayEvents = STATE.events.filter(ev => dateStr >= (ev.start_date||ev.date) && dateStr <= (ev.end_date||ev.start_date||ev.date));
     const isToday = dateStr === todayStr;
     html += `<div class="cal-day ${otherMonth?'other-month':''} ${isToday?'today':''}">
       <div class="num">${cellDate.getDate()}</div>
