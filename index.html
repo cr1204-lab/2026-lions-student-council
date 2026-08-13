@@ -1511,6 +1511,9 @@ function renderBookingList(){
   el.innerHTML = list.map(b=>{
     const status = b.status || '대기';
     const dateLabel = b.start_date === b.end_date ? b.start_date : `${b.start_date||'-'} ~ ${b.end_date||'-'}`;
+    const isOwner = b.category === STATE.myCategory;
+    const canEdit = !STATE.isAdmin && isOwner && status !== '승인';
+    const canDelete = STATE.isAdmin || (isOwner && status !== '승인');
     return `
     <div class="card req-item" data-id="${escapeHtml(b.id)}">
       <div class="top-row">
@@ -1539,6 +1542,35 @@ function renderBookingList(){
         <button class="btn reject small" data-bk-reject="${escapeHtml(b.id)}">반려</button>
       </div>` : ''}
       ${status === '대기' && !STATE.isAdmin ? `<div class="meta">담당자 승인을 기다리고 있어요.</div>` : ''}
+      ${canEdit || canDelete ? `
+      <div class="review-panel">
+        ${canEdit ? `<button class="btn outline small" data-bk-edit-toggle="${escapeHtml(b.id)}">${status === '반려' ? '수정 후 재제출' : '내용 수정하기'}</button>` : ''}
+        ${canDelete ? `<button class="btn reject small" data-bk-delete="${escapeHtml(b.id)}">삭제</button>` : ''}
+      </div>` : ''}
+      ${canEdit ? `
+      <div class="resubmit-form" id="bk-edit-${escapeHtml(b.id)}" style="display:none;">
+        <div class="field-row">
+          <div class="field"><label>장소</label><input type="text" data-bke-venue="${escapeHtml(b.id)}" value="${escapeHtml(b.venue)}"></div>
+          <div class="field"><label>행사명 / 사용 목적</label><input type="text" data-bke-event="${escapeHtml(b.id)}" value="${escapeHtml(b.event_name)}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>시작 날짜</label><input type="date" data-bke-startdate="${escapeHtml(b.id)}" value="${b.start_date||''}"></div>
+          <div class="field"><label>종료 날짜</label><input type="date" data-bke-enddate="${escapeHtml(b.id)}" value="${b.end_date||''}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>시작시간</label><input type="time" data-bke-starttime="${escapeHtml(b.id)}" value="${b.start_time||''}"></div>
+          <div class="field"><label>종료시간</label><input type="time" data-bke-endtime="${escapeHtml(b.id)}" value="${b.end_time||''}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>신청자명</label><input type="text" data-bke-requester="${escapeHtml(b.id)}" value="${escapeHtml(b.requester_name||'')}"></div>
+          <div class="field"><label>신청자 연락처</label><input type="tel" data-bke-phone="${escapeHtml(b.id)}" value="${escapeHtml(b.requester_phone||'')}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>행사 인원</label><input type="number" min="1" data-bke-headcount="${escapeHtml(b.id)}" value="${b.headcount||''}"></div>
+          <div class="field"><label>비고</label><input type="text" data-bke-purpose="${escapeHtml(b.id)}" value="${escapeHtml(b.purpose||'')}"></div>
+        </div>
+        <button class="btn small" data-bk-save="${escapeHtml(b.id)}">재제출</button>
+      </div>` : ''}
     </div>
   `;}).join('');
 
@@ -1548,6 +1580,74 @@ function renderBookingList(){
   el.querySelectorAll('[data-bk-reject]').forEach(btn=>{
     btn.addEventListener('click', ()=>handleBookingReview(btn.getAttribute('data-bk-reject'), '반려'));
   });
+  el.querySelectorAll('[data-bk-edit-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-bk-edit-toggle');
+      const form = document.getElementById('bk-edit-'+id);
+      if(form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+  el.querySelectorAll('[data-bk-save]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleEditBooking(btn.getAttribute('data-bk-save')));
+  });
+  el.querySelectorAll('[data-bk-delete]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleDeleteBooking(btn.getAttribute('data-bk-delete')));
+  });
+}
+
+async function handleEditBooking(id){
+  const esc = CSS.escape(id);
+  const startDateEl = document.querySelector(`[data-bke-startdate="${esc}"]`);
+  const endDateEl = document.querySelector(`[data-bke-enddate="${esc}"]`);
+  const startTimeEl = document.querySelector(`[data-bke-starttime="${esc}"]`);
+  const endTimeEl = document.querySelector(`[data-bke-endtime="${esc}"]`);
+  if(endDateEl.value < startDateEl.value){
+    toast('종료 날짜는 시작 날짜보다 빠를 수 없어요.');
+    return;
+  }
+  if(startDateEl.value === endDateEl.value && startTimeEl.value >= endTimeEl.value){
+    toast('종료시간은 시작시간보다 늦어야 해요.');
+    return;
+  }
+  const btn = document.querySelector(`[data-bk-save="${esc}"]`);
+  btn.disabled = true;
+  btn.textContent = '재제출 중...';
+  try{
+    const payload = {
+      id,
+      venue: document.querySelector(`[data-bke-venue="${esc}"]`).value.trim(),
+      event_name: document.querySelector(`[data-bke-event="${esc}"]`).value.trim(),
+      start_date: startDateEl.value,
+      end_date: endDateEl.value,
+      start_time: startTimeEl.value,
+      end_time: endTimeEl.value,
+      requester_name: document.querySelector(`[data-bke-requester="${esc}"]`).value.trim(),
+      requester_phone: document.querySelector(`[data-bke-phone="${esc}"]`).value.trim(),
+      headcount: document.querySelector(`[data-bke-headcount="${esc}"]`).value,
+      purpose: document.querySelector(`[data-bke-purpose="${esc}"]`).value.trim(),
+    };
+    const result = await postToBackend('resubmitBooking', payload);
+    if(!result.ok){
+      toast('재제출에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    toast('수정해서 다시 제출했어요.');
+    await refreshData();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '재제출';
+  }
+}
+
+async function handleDeleteBooking(id){
+  if(!window.confirm('이 대관 신청을 삭제할까요? 되돌릴 수 없어요.')) return;
+  const result = await postToBackend('deleteBooking', { id });
+  if(!result.ok){
+    toast('삭제에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+    return;
+  }
+  toast('대관 신청을 삭제했어요.');
+  await refreshData();
 }
 
 async function handleBookingReview(id, status){
