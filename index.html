@@ -153,7 +153,8 @@
 
   .req-list{ display:flex; flex-direction:column; gap:10px; }
   .req-item{ padding:20px 22px; }
-  .req-item .top-row{ display:flex; justify-content:space-between; gap:8px; align-items:baseline; flex-wrap:wrap; margin-bottom:2px; }
+  .req-item .top-row{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; flex-wrap:wrap; margin-bottom:2px; }
+  .req-item .titles{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
   .req-item .event{ font-weight:800; font-size:16px; }
   .req-item .cat{ font-size:11.5px; color:var(--brass-deep); font-weight:700; }
   .req-item .meta{ font-size:13.5px; color:#454438; margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:7px 22px; line-height:1.7; padding-bottom:10px; border-bottom:1px dashed var(--line); }
@@ -998,8 +999,10 @@ function renderReviewList(){
     return `
     <div class="card req-item" data-id="${escapeHtml(r.id)}">
       <div class="top-row">
-        <span class="event">${escapeHtml(r.event_name)}</span>
-        ${STATE.isAdmin ? `<span class="cat">${catName(r.category)}</span>` : ''}
+        <div class="titles">
+          <span class="event">${escapeHtml(r.event_name)}</span>
+          ${STATE.isAdmin ? `<span class="cat">${catName(r.category)}</span>` : ''}
+        </div>
         <span class="status-pill ${status}">${status}</span>
       </div>
       <div class="meta">
@@ -1358,8 +1361,10 @@ function renderBookingList(){
     return `
     <div class="card req-item" data-id="${escapeHtml(b.id)}">
       <div class="top-row">
-        <span class="event">${escapeHtml(b.venue)} — ${escapeHtml(b.event_name)}</span>
-        <span class="cat">${catName(b.category)}</span>
+        <div class="titles">
+          <span class="event">${escapeHtml(b.venue)} — ${escapeHtml(b.event_name)}</span>
+          <span class="cat">${catName(b.category)}</span>
+        </div>
         <span class="status-pill ${status}">${status}</span>
       </div>
       <div class="meta">
@@ -1482,8 +1487,10 @@ function renderEvidenceList(){
     return `
     <div class="card req-item" data-id="${escapeHtml(ev.id)}">
       <div class="top-row">
-        <span class="event">${escapeHtml(ev.event_name)}</span>
-        ${STATE.isAdmin ? `<span class="cat">${catName(ev.category)}</span>` : ''}
+        <div class="titles">
+          <span class="event">${escapeHtml(ev.event_name)}</span>
+          ${STATE.isAdmin ? `<span class="cat">${catName(ev.category)}</span>` : ''}
+        </div>
         <span class="status-pill ${isConfirmed ? '승인' : '대기'}">${isConfirmed ? '확인완료' : '확인 대기'}</span>
       </div>
       <div class="meta">
