@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIONS칼리지 학생회 RC 예산 관리</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEE3;
+    --paper-2:#E9E4D4;
+    --ink:#1F2A22;
+    --ink-soft:#3B4136;
+    --line:#D2CBB4;
+    --brass:#A9822F;
+    --brass-deep:#8A6A22;
+    --green:#3F6B4F;
+    --green-soft:#E4EBE1;
+    --amber:#B4812B;
+    --amber-soft:#F3E7CE;
+    --red:#A5423A;
+    --red-soft:#F1DEDA;
+    --card:#FBF9F2;
+    --shadow:0 1px 0 rgba(31,42,34,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    background-image: linear-gradient(var(--line) 1px, transparent 1px);
+    background-size: 100% 42px;
+    color:var(--ink);
+    font-family:'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    font-size:15px;
+    line-height:1.6;
+  }
+  .num{ font-family:'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  a{color:inherit;}
+
+  .shell{ max-width:1180px; margin:0 auto; padding:28px 22px 80px; }
+
+  header.top{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    padding-bottom:18px; border-bottom:2px solid var(--ink); margin-bottom:22px;
+    flex-wrap:wrap; gap:14px;
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; }
+  .brand-logo{ height:48px; width:auto; max-width:280px; margin-bottom:10px; align-self:flex-start; object-fit:contain; display:block; }
+  .brand .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; color:var(--brass-deep); text-transform:uppercase; font-style:italic; }
+  .brand h1{ font-weight:800; font-size:26px; margin:2px 0 0; letter-spacing:-.01em; }
+  .brand .sub{ font-size:13.5px; color:var(--ink-soft); margin-top:2px; }
+  .signed-in-as{ font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:10px; }
+  .signed-in-as b{ color:var(--ink); font-weight:700; }
+
+  nav.tabs{ display:flex; gap:6px; margin-bottom:26px; flex-wrap:wrap; }
+  nav.tabs button{
+    font-family:inherit; font-weight:600; font-size:14.5px;
+    padding:10px 16px; border:1.5px solid var(--line); background:var(--card); color:var(--ink-soft);
+    border-radius:8px 8px 0 0; cursor:pointer; position:relative; top:1px;
+  }
+  nav.tabs button.active{ background:var(--paper); border-color:var(--ink); border-bottom-color:var(--paper); color:var(--ink); }
+
+  .view{ display:none; } .view.active{ display:block; }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); }
+  .section-title{ font-weight:800; font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:8px;}
+  .muted{ color:var(--ink-soft); font-size:13.5px; }
+
+  .cat-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:16px; margin-bottom:8px; }
+
+  .admin-summary{ display:flex; flex-wrap:wrap; gap:20px 36px; padding:18px 22px; align-items:baseline; }
+  .admin-summary .item{ display:flex; flex-direction:column; gap:4px; }
+  .admin-summary .item .label{ font-size:12px; font-weight:700; color:var(--ink-soft); }
+  .admin-summary .item .value{ font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:700; }
+  .admin-summary .item .value.remain{ color:var(--green); }
+  .cat-grid.single{ max-width:520px; }
+  .cat-card{ padding:20px 20px 18px; display:flex; flex-direction:column; gap:10px; }
+  .cat-card .name{ font-weight:700; font-size:17px; word-break:keep-all; line-height:1.4; }
+  .cat-card .total{ font-size:12.5px; color:var(--ink-soft); }
+  .bar{ height:10px; border-radius:5px; background:var(--paper-2); overflow:hidden; display:flex; border:1px solid var(--line); }
+  .bar .seg-approved{ background:var(--green); height:100%; }
+  .cat-card .figures{ display:flex; justify-content:space-between; align-items:baseline; }
+  .cat-card .remain{ font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; }
+  .cat-card .remain.tight{ color:var(--red); }
+  .legend{ display:flex; gap:12px; font-size:12px; color:var(--ink-soft); flex-wrap:wrap; }
+  .legend span{ display:inline-flex; align-items:center; gap:4px; }
+  .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .dot.g{ background:var(--green);} .dot.b{ background:var(--brass);}
+
+  .form-card{ padding:22px; max-width:640px; margin:0 auto; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .field-row.single{ grid-template-columns:1fr; }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .field label{ font-size:13px; font-weight:700; color:var(--ink-soft); }
+  .field .hint{ font-size:11.5px; color:#6B6A5C; font-weight:400; }
+  input[type=text], input[type=number], input[type=date], input[type=tel], input[type=url], input[type=file], textarea, select{
+    font-family:inherit; font-size:14.5px; padding:10px 11px;
+    border:1.3px solid var(--line); border-radius:6px; background:#fff; color:var(--ink);
+  }
+  input[type=file]{ padding:8px; font-size:13.5px; }
+  input:focus, textarea:focus, select:focus{ outline:2px solid var(--brass); outline-offset:1px; border-color:var(--brass); }
+  .locked-field{ padding:10px 11px; border:1.3px solid var(--line); border-radius:6px; background:var(--paper-2); font-size:14.5px; font-weight:700; color:var(--ink-soft); }
+
+  .file-drop{
+    border:1.5px dashed var(--line); border-radius:8px; padding:14px; text-align:center;
+    background:var(--paper-2); font-size:13.5px; color:var(--ink-soft); margin-top:4px;
+  }
+  .file-drop.has-file{ border-color:var(--green); background:var(--green-soft); color:var(--green); font-weight:700; }
+
+  .btn{
+    font-family:inherit; font-weight:700; font-size:14.5px; padding:11px 18px;
+    border-radius:7px; border:1.5px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer;
+  }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn.small{ padding:7px 12px; font-size:13px; }
+  .btn.outline{ background:transparent; color:var(--ink); }
+  .btn.approve{ border-color:var(--green); background:var(--green); color:#fff; }
+  .btn.reject{ border-color:var(--red); background:transparent; color:var(--red); }
+
+  .info-box{ background:var(--amber-soft); border:1px solid var(--amber); border-radius:8px; padding:14px 16px; font-size:13.5px; color:#5a431a; margin-bottom:16px; line-height:1.6; max-width:640px; margin-left:auto; margin-right:auto; }
+
+  .guideline-details{ margin-top:30px; }
+  .guideline-summary{ cursor:pointer; list-style:none; user-select:none; }
+  .guideline-summary::-webkit-details-marker{ display:none; }
+  .guideline-summary::before{ content:'▸'; display:inline-block; margin-right:2px; color:var(--brass-deep); transition:transform .15s; }
+  details[open] > .guideline-summary::before{ transform:rotate(90deg); }
+  .guideline-hint{ font-size:12px; font-weight:400; color:var(--ink-soft); }
+  .guideline-card{ padding:22px 26px; margin-top:12px; max-height:340px; overflow-y:auto; }
+  .guideline-list{ margin:0; padding-left:20px; font-size:14px; line-height:1.8; color:var(--ink); }
+  .guideline-list > li{ margin-bottom:12px; font-weight:700; }
+  .guideline-list > li:last-child{ margin-bottom:0; }
+  .guideline-list ul{ margin:6px 0 0; padding-left:20px; font-weight:400; color:var(--ink-soft); }
+  .guideline-list ul li{ margin-bottom:3px; }
+  .guideline-note{ margin:6px 0 0; font-size:13px; font-weight:600; color:var(--brass-deep); }
+  .info-box b{ color:var(--brass-deep); }
+  .info-box ul{ margin:6px 0 0; padding-left:18px; }
+
+  .warn-box{ background:var(--red-soft); border:1px solid var(--red); border-radius:8px; padding:14px 16px; font-size:13.5px; color:#5a2420; margin-bottom:16px; line-height:1.6; max-width:640px; margin-left:auto; margin-right:auto; }
+  .warn-box b{ color:var(--red); }
+
+  .subsection{ border-top:1.5px dashed var(--line); margin-top:18px; padding-top:16px; }
+  .subsection .sub-title{ font-weight:800; font-size:14.5px; margin-bottom:3px; display:flex; align-items:center; gap:8px; }
+  .subsection .sub-title .step{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--brass-deep); border:1px solid var(--brass-deep); border-radius:4px; padding:0 6px; }
+  .template-link{ display:inline-flex; align-items:center; gap:6px; font-size:13.5px; font-weight:700; color:var(--brass-deep); text-decoration:underline; margin-bottom:8px; }
+
+  .evidence-docs-summary{ cursor:pointer; list-style:none; user-select:none; }
+  .evidence-docs-summary::-webkit-details-marker{ display:none; }
+  .evidence-docs-summary::before{ content:'▸'; display:inline-block; margin-right:2px; color:var(--brass-deep); transition:transform .15s; }
+  .evidence-docs-details[open] > .evidence-docs-summary::before{ transform:rotate(90deg); }
+
+  .req-list{ display:flex; flex-direction:column; gap:10px; }
+  .req-item{ padding:20px 22px; }
+  .req-item .top-row{ display:flex; justify-content:space-between; gap:8px; align-items:baseline; flex-wrap:wrap; margin-bottom:2px; }
+  .req-item .event{ font-weight:800; font-size:16px; }
+  .req-item .cat{ font-size:11.5px; color:var(--brass-deep); font-weight:700; }
+  .req-item .meta{ font-size:13.5px; color:#454438; margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:7px 22px; line-height:1.7; padding-bottom:10px; border-bottom:1px dashed var(--line); }
+  .req-item .meta:last-of-type{ border-bottom:none; padding-bottom:0; }
+  .req-item .file-group{ margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; }
+
+  .status-table{ width:100%; border-collapse:collapse; font-size:14px; }
+  .status-table th{ text-align:left; font-weight:700; font-size:12px; letter-spacing:.03em; color:var(--ink-soft); text-transform:uppercase; padding:9px 12px; border-bottom:1.5px solid var(--ink); white-space:nowrap; }
+  .status-table td{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle; white-space:nowrap; }
+  .status-table tr:last-child td{ border-bottom:none; }
+  .status-table .amt{ font-family:'IBM Plex Mono',monospace; font-weight:700; }
+  .badge{ font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px; display:inline-block; }
+  .badge.대기{ background:var(--amber-soft); color:var(--amber); }
+  .badge.승인{ background:var(--green-soft); color:var(--green); }
+  .badge.반려{ background:var(--red-soft); color:var(--red); }
+  .badge.제출완료{ background:var(--green-soft); color:var(--green); }
+  .badge.미제출{ background:var(--paper-2); color:var(--ink-soft); }
+
+  .empty{ text-align:center; padding:40px 20px; color:var(--ink-soft); font-size:14px; }
+  .empty .glyph{ font-size:26px; margin-bottom:8px; }
+
+  .status-pill{ font-size:12px; font-weight:700; padding:2px 9px; border-radius:999px; display:inline-block; }
+  .status-pill.대기{ background:var(--amber-soft); color:var(--amber); }
+  .status-pill.승인{ background:var(--green-soft); color:var(--green); }
+  .status-pill.반려{ background:var(--red-soft); color:var(--red); }
+
+  .review-panel{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .resubmit-form{ margin-top:10px; padding:12px; border-radius:8px; background:var(--paper-2); border:1px solid var(--line); }
+  .resubmit-form .field-row{ margin-bottom:10px; }
+  .resubmit-form input[type=file]{ background:#fff; }
+  .review-panel textarea{ flex:1; min-width:180px; min-height:38px; font-family:inherit; }
+  .review-panel input[type=number]{ width:150px; }
+
+  .purchase-panel{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13.5px; }
+  .purchase-panel label{ display:flex; align-items:center; gap:6px; font-weight:700; color:var(--ink-soft); }
+  .purchase-panel input[type=number]{ width:150px; }
+  .purchase-summary{ font-weight:800; color:var(--green); font-family:'IBM Plex Mono',monospace; }
+
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); padding:11px 20px; border-radius:8px; font-size:14px; font-weight:700;
+    opacity:0; pointer-events:none; transition:.25s; z-index:50; box-shadow:0 6px 18px rgba(0,0,0,.2);
+    max-width:min(90vw, 480px); text-align:center; white-space:normal; line-height:1.5;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  footer.note{ text-align:center; font-size:12px; color:#7D7A6C; margin-top:36px; }
+  .file-link{ font-size:13.5px; font-weight:700; text-decoration:underline; color:var(--brass-deep); background:var(--paper-2); border:1px solid var(--line); padding:6px 12px; border-radius:6px; font-family:inherit; display:inline-block; line-height:1.5; }
+
+  /* ---------- Login gate ---------- */
+  #loginGate{
+    position:fixed; inset:0; background:var(--paper); z-index:100;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .login-card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:32px 28px; max-width:360px; width:100%; box-shadow:0 12px 32px rgba(31,42,34,.12); text-align:center; }
+  .login-card h2{ font-weight:800; font-size:19px; margin:0 0 6px; }
+  .login-card p{ font-size:12.5px; color:var(--ink-soft); margin:0 0 20px; line-height:1.6; }
+  .login-card input{ width:100%; margin-bottom:10px; box-sizing:border-box; }
+  .login-card .btn{ width:100%; }
+  .login-error{ margin-top:14px; font-size:12px; color:var(--red); font-weight:700; display:none; }
+  #appRoot{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="loginGate">
+  <div class="login-card">
+    <h2>🔒 학생회 대표 전용</h2>
+    <p>담당 계열의 암호를 입력하면, 본인 계열의 예산만 볼 수 있어요.</p>
+    <input type="password" id="loginPasscode" placeholder="계열 암호">
+    <button class="btn" id="loginBtn">입장하기</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div id="appRoot">
+<div class="shell">
+
+  <header class="top">
+    <div class="brand">
+      <img class="brand-logo" src="data:image/png;base64,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" alt="한양대학교 ERICA LIONS칼리지">
+      <div class="eyebrow">LIONS College · Student Council</div>
+      <h1>LIONS칼리지 학생회 RC 예산 관리</h1>
+      <div class="sub" id="subLine">예산 현황 확인 · 신청 · 승인 · 증빙자료 제출을 한 곳에서</div>
+    </div>
+    <div class="signed-in-as">
+      <span>👤 <b id="currentUserName"></b>으로 접속 중</span>
+      <button class="btn outline small" id="logoutBtn">로그아웃</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-view="dashboard">대시보드</button>
+    <button class="tab-btn" data-view="apply">예산 신청</button>
+    <button class="tab-btn" data-view="evidence">증빙자료 제출</button>
+    <button class="tab-btn" data-view="booking">대관 신청</button>
+    <button class="tab-btn" data-view="schedule">일정 공유</button>
+  </nav>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div class="view active" id="view-dashboard">
+    <details class="guideline-details" style="margin-top:0;">
+      <summary class="section-title guideline-summary">◎ RC 예산 사용 안내 사항 <span class="guideline-hint">(펼쳐서 보기)</span></summary>
+      <div class="card guideline-card">
+        <ol class="guideline-list">
+          <li>행사 진행 시, 행사일 기준 <b>최소 1개월 전까지</b> 기획안 및 예산안 제출 필수
+            <ul><li>장소 대관 필요 시, 사전 확인 필요</li></ul>
+          </li>
+          <li>예산 지원 가능 여부 확인 후에만 집행 가능</li>
+          <li>결제는 <b>세금계산서 또는 법인카드</b> 결제만 가능</li>
+          <li>상품권 등 <b>현금화 가능한 품목은 결제 불가</b></li>
+          <li>상품 관련 기준
+            <ul>
+              <li><b>1인당 30,000원 미만</b>의 품목만 결제 가능</li>
+              <li>상품 수령자 명단 작성 후 제출</li>
+              <li>상품 수령자 명단: 학번, 성명, 소속학과, 자필 서명</li>
+            </ul>
+          </li>
+          <li>물품 구매 시 아래 항목을 엑셀로 정리하여 제출
+            <ul>
+              <li>구매자 성명 · 구매자 연락처</li>
+              <li>물품 수령 주소</li>
+              <li>품목명 / 수량 / 금액</li>
+              <li>구매 링크</li>
+              <li>구매 필요 일자</li>
+            </ul>
+            <p class="guideline-note">※ 제출 전 품절 여부 반드시 확인</p>
+          </li>
+          <li>세금계산서 발급 시 아래 서류 제출 필수
+            <ul>
+              <li>업체 사업자등록증</li>
+              <li>업체 통장 사본</li>
+              <li>견적서</li>
+              <li>거래명세서</li>
+            </ul>
+          </li>
+          <li>행사 종료 후 <b>1주일 이내</b> 결과보고서 제출</li>
+          <li>결과보고서 포함 내용
+            <ul>
+              <li>행사 개요</li>
+              <li>참여 인원</li>
+              <li>주요 프로그램 내용</li>
+              <li>사진 등 활동 증빙자료</li>
+            </ul>
+          </li>
+        </ol>
+      </div>
+    </details>
+
+    <div id="adminSummary" style="display:none;"></div>
+    <div class="section-title" style="margin-bottom:16px; margin-top:30px;" id="dashboardTitle">우리 계열 예산 현황</div>
+    <div class="cat-grid" id="catGrid"></div>
+
+    <div class="section-title" style="margin-top:30px;">제출 현황</div>
+    <p class="muted" style="margin:2px 0 12px;">예산 신청서의 진행 상태와, 그 행사의 증빙서류·결과보고서 제출 여부·최종 금액을 한눈에 볼 수 있어요.</p>
+    <div class="card" style="overflow:auto; padding:6px 4px;">
+      <table class="status-table" id="myStatusTable">
+        <thead><tr id="statusTableHead"><th>신청일</th><th>행사명</th><th>진행상태</th><th>증빙서류</th><th>결과보고서</th><th>최종 금액</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= APPLY ================= -->
+  <div class="view" id="view-apply">
+    <div class="section-title" style="justify-content:center;">예산 신청</div>
+    <div class="info-box">
+      <b>제출 전 확인하세요</b>
+      <ul>
+        <li>행사일 기준 <b>최소 1개월 전</b> 기획안·예산안 제출 (장소 대관 필요 시 사전 확인)</li>
+        <li>결제는 <b>세금계산서 또는 법인카드</b>만 가능 · 상품권 등 현금화 가능 품목 결제 불가</li>
+        <li>상품은 <b>1인당 3만원 미만</b>만 구매 가능</li>
+        <li>승인 전 집행 불가 — 예산 신청서에 구매 필요 일자를 정확히 적어주세요</li>
+      </ul>
+    </div>
+
+    <div class="warn-box" id="applyAdminNote" style="display:none;">
+      <b>관리자 계정</b>은 신청서를 제출할 수 없어요. 아래 "제출 현황"에서 모든 계열의 신청 내역을 확인해주세요.
+    </div>
+
+    <div class="card form-card" id="applyFormCard">
+      <form id="applyForm">
+        <div class="field-row">
+          <div class="field">
+            <label>계열</label>
+            <div class="locked-field" id="f_category_display">-</div>
+          </div>
+          <div class="field">
+            <label>행사명</label>
+            <input type="text" id="f_event" placeholder="예: 가을 단합대회" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>사용(행사) 예정일</label>
+            <input type="date" id="f_eventdate" required>
+          </div>
+          <div class="field">
+            <label>행사 장소</label>
+            <input type="text" id="f_location" placeholder="예: 대학본부 대강당" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>구매 필요 일자</label>
+            <input type="date" id="f_neededdate" required>
+          </div>
+          <div class="field">
+            <label>구매자명</label>
+            <input type="text" id="f_purchaser" placeholder="예: 홍길동" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>구매자 전화번호</label>
+            <input type="tel" id="f_purchaserphone" placeholder="예: 010-1234-5678" required>
+          </div>
+          <div class="field">
+            <label>배송 장소</label>
+            <input type="text" id="f_address" placeholder="예: 학생회실, OO관 101호" required>
+          </div>
+        </div>
+        <div class="subsection" style="margin-top:14px;border-top:none;padding-top:0;">
+          <div class="sub-title"><span class="step">1</span> 기획안 파일</div>
+          <p class="muted" style="margin:0 0 8px;">행사 기획안·예산안을 <b>PDF</b>로 제출해주세요. <span class="hint">(3.5MB 이하)</span></p>
+          <input type="file" id="f_plan" accept="application/pdf" required>
+          <div class="file-drop" id="planDropLabel">선택된 파일이 없어요</div>
+        </div>
+
+        <div class="subsection">
+          <div class="sub-title"><span class="step">2</span> 물품 구매 신청서</div>
+          <p class="muted" style="margin:0 0 8px;">품목명·수량·금액·구매 링크·구매 필요 일자를 정리한 <b>엑셀 파일</b>로 제출해주세요. 제출 전 <b>수량 및 품절 여부</b>를 반드시 확인해주세요. <span class="hint">(3.5MB 이하)</span></p>
+          <input type="file" id="f_purchase" accept=".xlsx,.xls,.csv" required>
+          <div class="file-drop" id="purchaseDropLabel">선택된 파일이 없어요</div>
+        </div>
+
+        <button type="submit" class="btn" style="width:100%;margin-top:18px;">예산 신청</button>
+      </form>
+    </div>
+
+    <div class="section-title" style="margin-top:36px;">예산 승인 관리</div>
+    <p class="muted" style="margin:2px 0 16px;">우리 계열에 제출된 기획안·물품구매신청서를 검토해서 승인·반려하고, 승인된 건은 실제 구매 여부와 최종 구매 금액을 기록해주세요.</p>
+    <div class="filter-row" style="margin-bottom:14px; display:flex; gap:8px;">
+      <select id="reviewFilterStatus" style="font-size:12px; padding:7px 10px;">
+        <option value="">전체 상태</option>
+        <option value="대기">대기</option>
+        <option value="승인">승인</option>
+        <option value="반려">반려</option>
+      </select>
+    </div>
+    <div id="reviewList" class="req-list"></div>
+  </div>
+
+  <!-- ================= EVIDENCE ================= -->
+  <div class="view" id="view-evidence">
+    <div class="section-title" style="justify-content:center;">증빙자료 제출</div>
+    <p class="muted" style="text-align:center;margin:2px 0 4px;">행사 종료 후 1주일 이내에 제출해주세요.</p>
+    <p class="muted" style="text-align:center;margin:0 0 16px;font-weight:700;">제출 증빙 자료: 예산 집행 관련 서류 및 결과보고서</p>
+
+    <div class="warn-box" id="evidenceAdminNote" style="display:none;">
+      <b>관리자 계정</b>은 증빙자료를 제출할 수 없어요. 아래 목록에서 모든 계열의 제출 내역을 확인해주세요.
+    </div>
+
+    <div class="card form-card" id="evidenceFormCard">
+      <form id="evidenceForm">
+        <div class="field-row">
+          <div class="field">
+            <label>계열</label>
+            <div class="locked-field" id="e_category_display">-</div>
+          </div>
+          <div class="field">
+            <label>행사명</label>
+            <input type="text" id="e_event" list="eventNameList" placeholder="예: 가을 단합대회" required>
+            <datalist id="eventNameList"></datalist>
+            <span class="hint">신청했던 행사명을 선택하면 행사일자·행사 장소가 자동으로 채워져요</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>행사일자</label>
+            <input type="date" id="e_eventdate" required>
+          </div>
+          <div class="field">
+            <label>행사 장소</label>
+            <input type="text" id="e_location" placeholder="예: 대학본부 대강당" required>
+          </div>
+        </div>
+
+        <details class="subsection evidence-docs-details">
+          <summary class="sub-title evidence-docs-summary">예산 집행 관련 서류 <span class="guideline-hint">(세금계산서 발급 시 클릭)</span></summary>
+          <p class="muted" style="margin:10px 0 10px;">세금계산서를 발급받지 않았다면 이 항목은 비워두고 결과보고서만 제출하면 돼요. <span class="hint">(파일당 3.5MB 이하)</span></p>
+
+          <div class="field" style="margin-bottom:12px;">
+            <label>업체 사업자등록증</label>
+            <input type="file" id="e_doc_biznum">
+            <div class="file-drop" id="dropBiznum">선택된 파일이 없어요</div>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>업체 통장 사본</label>
+            <input type="file" id="e_doc_bankbook">
+            <div class="file-drop" id="dropBankbook">선택된 파일이 없어요</div>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>견적서</label>
+            <input type="file" id="e_doc_quote">
+            <div class="file-drop" id="dropQuote">선택된 파일이 없어요</div>
+          </div>
+          <div class="field">
+            <label>거래명세서</label>
+            <input type="file" id="e_doc_statement">
+            <div class="file-drop" id="dropStatement">선택된 파일이 없어요</div>
+          </div>
+        </details>
+
+        <div class="subsection">
+          <div class="sub-title">결과보고서 제출</div>
+          <a href="#" class="template-link" id="reportTemplateLink" target="_blank" rel="noopener">📄 결과보고서 양식 다운로드</a>
+          <p class="muted" style="margin:0 0 8px;">행사 개요, 참여 인원, 주요 프로그램 내용, 활동 사진 등을 포함해 작성한 결과보고서를 첨부해주세요. <span class="hint">(3.5MB 이하)</span></p>
+          <input type="file" id="e_report">
+          <div class="file-drop" id="reportDropLabel">선택된 파일이 없어요</div>
+        </div>
+
+        <button type="submit" class="btn" style="width:100%;margin-top:18px;">증빙자료 제출</button>
+      </form>
+    </div>
+
+    <div class="section-title" style="margin-top:30px;">제출 내역</div>
+    <div class="req-list" id="evidenceList"></div>
+  </div>
+
+  <!-- ================= BOOKING (대관 신청) ================= -->
+  <div class="view" id="view-booking">
+    <div class="section-title" style="justify-content:center;">대관 신청</div>
+    <p class="muted" style="text-align:center;margin:2px 0 16px;">모든 계열이 서로의 신청 내역을 볼 수 있어요 — 겹치는 시간대는 신청 단계에서 미리 알려드려요.</p>
+
+    <div class="warn-box" id="bookingAdminNote" style="display:none;">
+      <b>관리자 계정</b>은 대관 신청을 할 수 없어요. 아래 목록에서 승인·반려를 진행해주세요.
+    </div>
+
+    <div class="card form-card" id="bookingFormCard">
+      <form id="bookingForm">
+        <div class="field-row">
+          <div class="field">
+            <label>장소</label>
+            <input type="text" id="bk_venue" placeholder="예: 학생회관 대강당" required>
+          </div>
+          <div class="field">
+            <label>행사명 / 사용 목적</label>
+            <input type="text" id="bk_event" placeholder="예: 가을 단합대회" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>날짜</label>
+            <input type="date" id="bk_date" required>
+          </div>
+          <div class="field">
+            <label>시작시간 · 종료시간</label>
+            <div style="display:flex; gap:8px;">
+              <input type="time" id="bk_start" required>
+              <input type="time" id="bk_end" required>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>신청자명</label>
+            <input type="text" id="bk_requester" placeholder="예: 홍길동" required>
+          </div>
+          <div class="field">
+            <label>신청자 연락처</label>
+            <input type="tel" id="bk_phone" placeholder="예: 010-1234-5678" required>
+          </div>
+        </div>
+        <div class="field-row single">
+          <div class="field">
+            <label>비고 <span class="hint">(선택)</span></label>
+            <input type="text" id="bk_purpose" placeholder="필요 장비, 참고사항 등">
+          </div>
+        </div>
+        <button type="submit" class="btn" style="width:100%;margin-top:18px;">대관 신청</button>
+      </form>
+    </div>
+
+    <div class="section-title" style="margin-top:30px;">대관 신청 현황</div>
+    <div class="filter-row" style="margin-bottom:14px; display:flex; gap:8px;">
+      <select id="bookingFilterStatus" style="font-size:12px; padding:7px 10px;">
+        <option value="">전체 상태</option>
+        <option value="대기">대기</option>
+        <option value="승인">승인</option>
+        <option value="반려">반려</option>
+      </select>
+    </div>
+    <div id="bookingList" class="req-list"></div>
+  </div>
+
+  <!-- ================= SCHEDULE (일정 공유) ================= -->
+  <div class="view" id="view-schedule">
+    <div class="section-title" style="justify-content:center;">일정 공유</div>
+    <p class="muted" style="text-align:center;margin:2px 0 16px;">승인 절차 없이 등록하면 바로 모든 계열에 공유돼요.</p>
+
+    <div class="card form-card">
+      <form id="scheduleForm">
+        <div class="field-row">
+          <div class="field">
+            <label>행사명</label>
+            <input type="text" id="sc_event" placeholder="예: 신입생 OT" required>
+          </div>
+          <div class="field">
+            <label>날짜</label>
+            <input type="date" id="sc_date" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>시작시간 <span class="hint">(선택)</span></label>
+            <input type="time" id="sc_start">
+          </div>
+          <div class="field">
+            <label>종료시간 <span class="hint">(선택)</span></label>
+            <input type="time" id="sc_end">
+          </div>
+        </div>
+        <div class="field-row single">
+          <div class="field">
+            <label>장소 <span class="hint">(선택)</span></label>
+            <input type="text" id="sc_venue" placeholder="예: 학생회관 대강당">
+          </div>
+        </div>
+        <div class="field-row single">
+          <div class="field">
+            <label>설명 <span class="hint">(선택)</span></label>
+            <input type="text" id="sc_desc" placeholder="간단한 설명">
+          </div>
+        </div>
+        <button type="submit" class="btn" style="width:100%;margin-top:18px;">일정 등록</button>
+      </form>
+    </div>
+
+    <div class="section-title" style="margin-top:30px;">전체 일정</div>
+    <div id="scheduleList" class="req-list"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <footer class="note">제출한 자료는 학생회 전용 Google 스프레드시트·드라이브에 저장됩니다</footer>
+</div>
+</div>
+
+<script>
+/* =========================================================================
+   설정
+   ========================================================================= */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi2_EOmkDyAdXYeqAgPa0GcUEvQ77B3pdAwVWYYpcZ8y_FqUL1tpU72fXqinD0g93q/exec';
+
+const MAX_FILE_BYTES = 3.5 * 1024 * 1024;
+
+const CATS = [
+  {key:'college', name:'LIONS칼리지 단과대학', total:12000000},
+  {key:'all', name:'LIONS자율전공학부 (전계열)', total:4000000},
+  {key:'science', name:'LIONS자율전공학부 (자연계열)', total:1900000},
+  {key:'humanities', name:'LIONS자율전공학부 (인문사회계열)', total:1700000},
+];
+
+const REPORT_TEMPLATE_URL = 'https://drive.google.com/file/d/12W9QWWC53cBIYClbpHOYWuTBpzRUPznf/view?usp=drive_link';
+
+const LEGACY_REQUESTS = (()=>{
+  const rows = [];
+  function add(category, event_name, event_date, amount){
+    rows.push({category, event_name, event_date, amount});
+  }
+  add('college','해오름식','2026-03-19',1255680);
+  add('college','해오름식','2026-03-19',138410);
+  add('college','해오름식','2026-03-25',54230);
+  add('college','해오름식','2026-03-25',123530);
+  add('college','해오름식','2026-03-26',7700);
+  add('college','해오름식','2026-03-27',205000);
+  add('college','해오름식','2026-03-27',114000);
+  add('college','해오름식','2026-03-30',288200);
+  add('college','해오름식','2026-04-21',50000);
+  add('college','해오름식','2026-04-21',440000);
+  add('college','해오름식','2026-06-17',1650000);
+  add('college','중간고사 이벤트','2026-04-13',62290);
+  add('college','단군체전','2026-05-18',1284450);
+  add('college','단군체전','2026-05-20',267900);
+  add('college','단군체전','2026-05-20',65590);
+  add('college','단군체전','2026-05-26',19870);
+  add('college','단군체전','2026-05-26',20800);
+  add('college','단군체전','2026-05-26',62700);
+  add('college','단군체전','2026-05-27',780000);
+  add('college','단군체전','2026-06-12',393800);
+  add('college','연합행사','2026-06-12',168980);
+  add('college','연합행사','2026-06-17',155090);
+  add('college','연합행사','2026-06-22',1650000);
+  add('all','전계열 MT','2026-05-15',2178000);
+  add('science','자연계열 MT','2026-05-22',660000);
+  add('humanities','인문사회계열 MT','2026-05-29',660000);
+  return rows;
+})();
+
+let STATE = { requests: [], evidence: [], bookings: [], events: [], passcode: null, myCategory: null, myName: null, isAdmin: false };
+
+function fmt(n){ return '₩' + Number(n||0).toLocaleString('ko-KR'); }
+function catName(key){ if(key === 'admin') return '관리자'; const c = CATS.find(c=>c.key===key); return c? c.name : key; }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  const duration = Math.min(7000, Math.max(2200, msg.length * 90));
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), duration);
+}
+function escapeHtml(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result);
+    r.onerror = ()=>reject(new Error('파일을 읽지 못했어요'));
+    r.readAsDataURL(file);
+  });
+}
+function fileToPayload(file, dataUrl){
+  if(!file) return null;
+  return { name: file.name, mimeType: file.type || 'application/octet-stream', base64: dataUrl };
+}
+
+/* ---------- Login ---------- */
+async function attemptLogin(){
+  const passcode = document.getElementById('loginPasscode').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if(!passcode){ return; }
+  const loginBtn = document.getElementById('loginBtn');
+  loginBtn.disabled = true;
+  loginBtn.textContent = '확인 중...';
+  const result = await postToBackend('verifyLogin', { passcode });
+  loginBtn.disabled = false;
+  loginBtn.textContent = '입장하기';
+  if(!result.ok){
+    errEl.textContent = result.error || '로그인에 실패했어요.';
+    errEl.style.display = 'block';
+    return;
+  }
+  STATE.passcode = passcode;
+  STATE.myCategory = result.category;
+  STATE.myName = result.name;
+  STATE.isAdmin = !!result.isAdmin;
+  document.getElementById('currentUserName').textContent = result.name;
+  document.getElementById('loginGate').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+  boot();
+}
+document.getElementById('loginBtn').addEventListener('click', attemptLogin);
+document.getElementById('loginPasscode').addEventListener('keydown', (e)=>{ if(e.key==='Enter') attemptLogin(); });
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  STATE = { requests: [], evidence: [], bookings: [], events: [], passcode: null, myCategory: null, myName: null, isAdmin: false };
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginGate').style.display = 'flex';
+  document.getElementById('loginPasscode').value = '';
+});
+
+/* ---------- Backend calls ---------- */
+async function postToBackend(action, data){
+  if(!APPS_SCRIPT_URL){
+    return { ok:false, error:'백엔드 주소(APPS_SCRIPT_URL)가 아직 설정되지 않았어요.' };
+  }
+  try{
+    const payload = Object.assign({}, data);
+    if(action !== 'verifyLogin') payload.passcode = STATE.passcode;
+    const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action, data: payload }) });
+    return await res.json();
+  }catch(e){
+    console.error('backend post failed', e);
+    return { ok:false, error: (e && e.message) ? e.message : String(e) };
+  }
+}
+
+function categoryTotals(catKey){
+  const legacy = LEGACY_REQUESTS.filter(r=>r.category===catKey).reduce((s,r)=>s+Number(r.amount||0),0);
+  const purchased = STATE.requests
+    .filter(r=> r.category===catKey && r.status==='승인' && isPurchased(r) && Number(r.final_amount||0) > 0)
+    .reduce((s,r)=>s+Number(r.final_amount||0),0);
+  const approved = legacy + purchased;
+  const cat = CATS.find(c=>c.key===catKey);
+  const remain = cat.total - approved;
+  return {approved, legacy, purchased, remain, total:cat.total};
+}
+function isPurchased(r){
+  return r.purchased === true || r.purchased === 'Y' || r.purchased === 'TRUE' || r.purchased === 'true';
+}
+
+/* ---------- Dashboard ---------- */
+function catCardHtml(cat){
+  const t = categoryTotals(cat.key);
+  const usedPct = Math.min(100, (t.approved/t.total)*100);
+  const div = document.createElement('div');
+  div.className = 'card cat-card';
+  div.innerHTML = `
+    <div class="name">${cat.name}</div>
+    <div class="total">총 예산 <span class="num">${fmt(t.total)}</span></div>
+    <div class="bar">
+      <div class="seg-approved" style="width:${usedPct}%"></div>
+    </div>
+    <div class="legend">
+      <span><i class="dot g"></i>사용 예산 ${fmt(t.approved)}</span>
+      ${t.purchased > 0 ? `<span><i class="dot b"></i>이 중 신규 구매확정 ${fmt(t.purchased)}</span>` : ''}
+    </div>
+    <div class="figures">
+      <span class="muted">잔여 예산</span>
+      <span class="remain ${t.remain < t.total*0.15 ? 'tight':''}">${fmt(t.remain)}</span>
+    </div>
+  `;
+  return div;
+}
+
+function renderDashboard(){
+  const grid = document.getElementById('catGrid');
+  const summaryEl = document.getElementById('adminSummary');
+  grid.innerHTML = '';
+  if(STATE.isAdmin){
+    grid.classList.remove('single');
+    document.getElementById('dashboardTitle').textContent = '전체 계열 예산 현황';
+    CATS.forEach(cat => grid.appendChild(catCardHtml(cat)));
+
+    const totals = CATS.reduce((acc, cat)=>{
+      const t = categoryTotals(cat.key);
+      acc.total += t.total;
+      acc.approved += t.approved;
+      acc.remain += t.remain;
+      return acc;
+    }, { total:0, approved:0, remain:0 });
+    summaryEl.style.display = '';
+    summaryEl.innerHTML = `
+      <div class="card admin-summary">
+        <div class="item"><span class="label">4개 계열 전체 예산</span><span class="value num">${fmt(totals.total)}</span></div>
+        <div class="item"><span class="label">전체 사용 예산</span><span class="value num">${fmt(totals.approved)}</span></div>
+        <div class="item"><span class="label">전체 잔여 예산</span><span class="value num remain">${fmt(totals.remain)}</span></div>
+      </div>
+    `;
+    return;
+  }
+  summaryEl.style.display = 'none';
+  summaryEl.innerHTML = '';
+  grid.classList.add('single');
+  const cat = CATS.find(c=>c.key===STATE.myCategory);
+  if(!cat){ grid.innerHTML = `<div class="card empty">담당 계열 정보를 찾을 수 없어요.</div>`; return; }
+  document.getElementById('dashboardTitle').textContent = cat.name + ' 예산 현황';
+  grid.appendChild(catCardHtml(cat));
+}
+
+/* ---------- Setup ---------- */
+function populateFixedCategory(){
+  const cat = CATS.find(c=>c.key===STATE.myCategory);
+  const name = cat ? cat.name : STATE.myCategory;
+
+  if(STATE.isAdmin){
+    document.getElementById('subLine').textContent = '예산 담당자 · 전체 계열 예산 승인 관리';
+    document.getElementById('applyFormCard').style.display = 'none';
+    document.getElementById('applyAdminNote').style.display = '';
+    document.getElementById('evidenceFormCard').style.display = 'none';
+    document.getElementById('evidenceAdminNote').style.display = '';
+    document.getElementById('bookingFormCard').style.display = 'none';
+    document.getElementById('bookingAdminNote').style.display = '';
+  } else {
+    document.getElementById('f_category_display').textContent = name;
+    document.getElementById('e_category_display').textContent = name;
+    document.getElementById('subLine').textContent = `${name} 담당 · 예산 현황 확인 · 신청 · 증빙자료 제출`;
+    document.getElementById('applyFormCard').style.display = '';
+    document.getElementById('applyAdminNote').style.display = 'none';
+    document.getElementById('evidenceFormCard').style.display = '';
+    document.getElementById('evidenceAdminNote').style.display = 'none';
+    document.getElementById('bookingFormCard').style.display = '';
+    document.getElementById('bookingAdminNote').style.display = 'none';
+  }
+
+  document.getElementById('reportTemplateLink').href = REPORT_TEMPLATE_URL;
+  if(REPORT_TEMPLATE_URL === '#'){
+    document.getElementById('reportTemplateLink').removeAttribute('target');
+    document.getElementById('reportTemplateLink').addEventListener('click', (e)=>{
+      e.preventDefault();
+      toast('결과보고서 양식 링크가 아직 설정되지 않았어요.');
+    });
+  }
+}
+
+function wireFileDrop(inputId, labelId){
+  document.getElementById(inputId).addEventListener('change', (e)=>{
+    const label = document.getElementById(labelId);
+    const file = e.target.files[0];
+    if(file){ label.textContent = `📎 ${file.name} (${(file.size/1024).toFixed(0)}KB)`; label.classList.add('has-file'); }
+    else{ label.textContent = '선택된 파일이 없어요'; label.classList.remove('has-file'); }
+  });
+}
+wireFileDrop('f_plan','planDropLabel');
+
+function syncNeededDateMax(eventDateInputId, neededDateInputId){
+  const eventEl = document.getElementById(eventDateInputId);
+  const neededEl = document.getElementById(neededDateInputId);
+  if(!eventEl || !neededEl) return;
+  eventEl.addEventListener('change', ()=>{
+    if(eventEl.value){
+      neededEl.max = eventEl.value;
+      if(neededEl.value && neededEl.value > eventEl.value) neededEl.value = eventEl.value;
+    } else {
+      neededEl.removeAttribute('max');
+    }
+  });
+}
+syncNeededDateMax('f_eventdate','f_neededdate');
+
+function syncMinTime(startInputId, endInputId){
+  const startEl = document.getElementById(startInputId);
+  const endEl = document.getElementById(endInputId);
+  if(!startEl || !endEl) return;
+  startEl.addEventListener('change', ()=>{
+    if(startEl.value){
+      endEl.min = startEl.value;
+      if(endEl.value && endEl.value <= startEl.value) endEl.value = '';
+    } else {
+      endEl.removeAttribute('min');
+    }
+  });
+}
+syncMinTime('bk_start','bk_end');
+syncMinTime('sc_start','sc_end');
+
+document.getElementById('reviewList').addEventListener('change', (e)=>{
+  if(!e.target.matches('[data-r-eventdate]')) return;
+  const id = e.target.getAttribute('data-r-eventdate');
+  const neededEl = document.querySelector(`[data-r-neededdate="${CSS.escape(id)}"]`);
+  if(!neededEl) return;
+  if(e.target.value){
+    neededEl.max = e.target.value;
+    if(neededEl.value && neededEl.value > e.target.value) neededEl.value = e.target.value;
+  } else {
+    neededEl.removeAttribute('max');
+  }
+});
+wireFileDrop('f_purchase','purchaseDropLabel');
+wireFileDrop('e_doc_biznum','dropBiznum');
+wireFileDrop('e_doc_bankbook','dropBankbook');
+wireFileDrop('e_doc_quote','dropQuote');
+wireFileDrop('e_doc_statement','dropStatement');
+wireFileDrop('e_report','reportDropLabel');
+
+function populateEventDatalist(){
+  const dl = document.getElementById('eventNameList');
+  if(!dl) return;
+  const names = [...new Set(STATE.requests.map(r=>r.event_name).filter(Boolean))];
+  dl.innerHTML = names.map(n=>`<option value="${escapeHtml(n)}"></option>`).join('');
+}
+
+document.getElementById('e_event').addEventListener('input', (e)=>{
+  const name = e.target.value.trim();
+  const matches = STATE.requests
+    .filter(r => r.event_name === name)
+    .sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||'')));
+  if(matches.length > 0){
+    if(matches[0].event_date) document.getElementById('e_eventdate').value = matches[0].event_date;
+    if(matches[0].event_location) document.getElementById('e_location').value = matches[0].event_location;
+  }
+});
+
+/* ---------- Apply tab ---------- */
+document.getElementById('applyForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const eventDate = document.getElementById('f_eventdate').value;
+  const neededDate = document.getElementById('f_neededdate').value;
+  if(eventDate && neededDate && neededDate > eventDate){
+    toast('구매 필요 일자는 행사 예정일보다 늦을 수 없어요.');
+    return;
+  }
+  const planFile = document.getElementById('f_plan').files[0];
+  const purchaseFile = document.getElementById('f_purchase').files[0];
+  const oversized = [planFile, purchaseFile].filter(Boolean).find(f=>f.size > MAX_FILE_BYTES);
+  if(oversized){
+    toast('파일 용량이 너무 커요. 각 파일은 3.5MB 이하로 첨부해주세요.');
+    return;
+  }
+  const submitBtn = e.target.querySelector('button[type=submit]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '제출 중...';
+
+  try{
+    const planDataUrl = planFile ? await readFileAsDataUrl(planFile) : null;
+    const purchaseDataUrl = purchaseFile ? await readFileAsDataUrl(purchaseFile) : null;
+
+    const payload = {
+      event_name: document.getElementById('f_event').value.trim(),
+      event_date: document.getElementById('f_eventdate').value,
+      event_location: document.getElementById('f_location').value.trim(),
+      needed_date: document.getElementById('f_neededdate').value,
+      purchaser_name: document.getElementById('f_purchaser').value.trim(),
+      purchaser_phone: document.getElementById('f_purchaserphone').value.trim(),
+      delivery_address: document.getElementById('f_address').value.trim(),
+      plan_file: fileToPayload(planFile, planDataUrl),
+      purchase_file: fileToPayload(purchaseFile, purchaseDataUrl),
+    };
+
+    const result = await postToBackend('submitRequest', payload);
+    if(!result.ok){
+      toast('예산 신청서 제출에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+
+    e.target.reset();
+    ['planDropLabel','purchaseDropLabel'].forEach(id=>{
+      document.getElementById(id).textContent = '선택된 파일이 없어요';
+      document.getElementById(id).classList.remove('has-file');
+    });
+    toast('예산 신청서를 제출했어요.');
+    await refreshData();
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '예산 신청';
+  }
+});
+
+/* ---------- Review (승인 관리) tab ---------- */
+function renderReviewList(){
+  const filter = document.getElementById('reviewFilterStatus').value;
+  const el = document.getElementById('reviewList');
+  const list = STATE.requests
+    .filter(r=> !filter || r.status === filter)
+    .slice()
+    .sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||'')));
+
+  if(list.length===0){
+    el.innerHTML = `<div class="card empty"><div class="glyph">🗂️</div>조건에 맞는 예산 신청서가 없어요.</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(r=>{
+    const status = r.status || '대기';
+    const purchasedNow = isPurchased(r);
+    return `
+    <div class="card req-item" data-id="${escapeHtml(r.id)}">
+      <div class="top-row">
+        <span class="event">${escapeHtml(r.event_name)}</span>
+        ${STATE.isAdmin ? `<span class="cat">${catName(r.category)}</span>` : ''}
+        <span class="status-pill ${status}">${status}</span>
+      </div>
+      <div class="meta">
+        <span>사용 예정일 ${r.event_date||'-'}</span>
+        <span>행사 장소 ${escapeHtml(r.event_location||'-')}</span>
+        <span>구매 필요일 ${r.needed_date||'-'}</span>
+        <span>제출일 ${r.submitted_at||'-'}</span>
+      </div>
+      <div class="meta">
+        <span>구매자 ${escapeHtml(r.purchaser_name||'-')}</span>
+        <span>연락처 ${escapeHtml(r.purchaser_phone||'-')}</span>
+        ${r.delivery_address ? `<span>배송 장소 ${escapeHtml(r.delivery_address)}</span>` : ''}
+      </div>
+      <div class="file-group">
+        ${r.plan_file_url ? `<a class="file-link" href="${escapeHtml(r.plan_file_url)}" target="_blank" rel="noopener">📄 기획안: ${escapeHtml(r.plan_file_name||'')}</a>` : `<span class="muted">기획안 없음</span>`}
+        ${r.purchase_file_url ? `<a class="file-link" href="${escapeHtml(r.purchase_file_url)}" target="_blank" rel="noopener">📊 구매신청서: ${escapeHtml(r.purchase_file_name||'')}</a>` : `<span class="muted">구매신청서 없음</span>`}
+      </div>
+      ${status === '대기' && STATE.isAdmin ? `
+      <div class="review-panel">
+        <textarea placeholder="승인 시 코멘트(선택) · 반려 시 사유(필수)" data-comment-for="${escapeHtml(r.id)}"></textarea>
+        <button class="btn approve small" data-approve="${escapeHtml(r.id)}">승인</button>
+        <button class="btn reject small" data-reject="${escapeHtml(r.id)}">반려</button>
+      </div>` : ''}
+      ${status === '대기' && !STATE.isAdmin ? `<div class="meta">담당자 승인을 기다리고 있어요.</div>` : ''}
+      ${status === '반려' && r.review_comment ? `<div class="meta" style="color:var(--red);">반려 사유: ${escapeHtml(r.review_comment)}</div>` : ''}
+      ${(status === '반려' || status === '대기') && !STATE.isAdmin ? `
+      <div class="review-panel">
+        <button class="btn outline small" data-edit-toggle="${escapeHtml(r.id)}">${status === '반려' ? '수정 후 재제출' : '내용 수정하기'}</button>
+      </div>
+      <div class="resubmit-form" id="resubmit-${escapeHtml(r.id)}" style="display:none;">
+        <div class="field-row">
+          <div class="field"><label>행사명</label><input type="text" data-r-event="${escapeHtml(r.id)}" value="${escapeHtml(r.event_name)}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>사용(행사) 예정일</label><input type="date" data-r-eventdate="${escapeHtml(r.id)}" value="${r.event_date||''}"></div>
+          <div class="field"><label>행사 장소</label><input type="text" data-r-location="${escapeHtml(r.id)}" value="${escapeHtml(r.event_location||'')}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>구매 필요 일자</label><input type="date" data-r-neededdate="${escapeHtml(r.id)}" value="${r.needed_date||''}"></div>
+          <div class="field"><label>구매자명</label><input type="text" data-r-purchaser="${escapeHtml(r.id)}" value="${escapeHtml(r.purchaser_name||'')}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>구매자 전화번호</label><input type="tel" data-r-purchaserphone="${escapeHtml(r.id)}" value="${escapeHtml(r.purchaser_phone||'')}"></div>
+          <div class="field"><label>배송 장소</label><input type="text" data-r-address="${escapeHtml(r.id)}" value="${escapeHtml(r.delivery_address||'')}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>기획안 다시 첨부 <span class="hint">(선택, 안 하면 기존 파일 유지)</span></label><input type="file" data-r-plan="${escapeHtml(r.id)}" accept="application/pdf"></div>
+          <div class="field"><label>구매 신청서 다시 첨부 <span class="hint">(선택)</span></label><input type="file" data-r-purchase="${escapeHtml(r.id)}" accept=".xlsx,.xls,.csv"></div>
+        </div>
+        <button class="btn small" data-resubmit="${escapeHtml(r.id)}">저장</button>
+      </div>` : ''}
+      ${status === '승인' && STATE.isAdmin ? `
+      <div class="purchase-panel">
+        <label><input type="checkbox" data-purchased-for="${escapeHtml(r.id)}" ${purchasedNow?'checked':''}> 구매 완료</label>
+        <label style="font-weight:400;">최종 구매 금액
+          <input type="number" min="0" data-amount-for="${escapeHtml(r.id)}" value="${r.final_amount || ''}" placeholder="원">
+        </label>
+        <button class="btn small" data-save-purchase="${escapeHtml(r.id)}">저장</button>
+        ${purchasedNow && r.final_amount ? `<span class="purchase-summary">✔ 구매확정 ${fmt(r.final_amount)}</span>` : ''}
+      </div>` : ''}
+      ${status === '승인' && !STATE.isAdmin ? `
+      <div class="meta">
+        ${purchasedNow && r.final_amount ? `<span class="purchase-summary">✔ 구매확정 ${fmt(r.final_amount)}</span>` : `<span>아직 구매 확정 전이에요.</span>`}
+      </div>` : ''}
+    </div>
+  `;}).join('');
+
+  el.querySelectorAll('[data-edit-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-edit-toggle');
+      const form = document.getElementById('resubmit-'+id);
+      if(form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+  el.querySelectorAll('[data-resubmit]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleResubmit(btn.getAttribute('data-resubmit')));
+  });
+
+  if(!STATE.isAdmin) return;
+
+  el.querySelectorAll('[data-approve]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleReview(btn.getAttribute('data-approve'), '승인'));
+  });
+  el.querySelectorAll('[data-reject]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleReview(btn.getAttribute('data-reject'), '반려'));
+  });
+  el.querySelectorAll('[data-save-purchase]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleSavePurchase(btn.getAttribute('data-save-purchase')));
+  });
+}
+
+async function handleReview(id, status){
+  const commentEl = document.querySelector(`[data-comment-for="${CSS.escape(id)}"]`);
+  const comment = commentEl ? commentEl.value.trim() : '';
+  if(status === '반려' && !comment){
+    toast('반려 사유를 입력해주세요.');
+    if(commentEl) commentEl.focus();
+    return;
+  }
+  const result = await postToBackend('updateRequest', {
+    id, status,
+    reviewed_by: STATE.myName || '',
+    review_comment: comment,
+  });
+  if(!result.ok){
+    toast('처리에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+    return;
+  }
+  toast(status === '승인' ? '승인했어요.' : '반려했어요.');
+  await refreshData();
+}
+
+async function handleResubmit(id){
+  const esc = CSS.escape(id);
+  const eventEl = document.querySelector(`[data-r-event="${esc}"]`);
+  const eventDateEl = document.querySelector(`[data-r-eventdate="${esc}"]`);
+  const locationEl = document.querySelector(`[data-r-location="${esc}"]`);
+  const neededDateEl = document.querySelector(`[data-r-neededdate="${esc}"]`);
+  const purchaserEl = document.querySelector(`[data-r-purchaser="${esc}"]`);
+  const purchaserPhoneEl = document.querySelector(`[data-r-purchaserphone="${esc}"]`);
+  const addressEl = document.querySelector(`[data-r-address="${esc}"]`);
+  const planEl = document.querySelector(`[data-r-plan="${esc}"]`);
+  const purchaseEl = document.querySelector(`[data-r-purchase="${esc}"]`);
+
+  const planFile = planEl && planEl.files[0] ? planEl.files[0] : null;
+  const purchaseFile = purchaseEl && purchaseEl.files[0] ? purchaseEl.files[0] : null;
+  const oversized = [planFile, purchaseFile].filter(Boolean).find(f=>f.size > MAX_FILE_BYTES);
+  if(oversized){
+    toast('파일 용량이 너무 커요. 각 파일은 3.5MB 이하로 첨부해주세요.');
+    return;
+  }
+  if(eventDateEl && neededDateEl && eventDateEl.value && neededDateEl.value && neededDateEl.value > eventDateEl.value){
+    toast('구매 필요 일자는 행사 예정일보다 늦을 수 없어요.');
+    return;
+  }
+
+  const btn = document.querySelector(`[data-resubmit="${esc}"]`);
+  btn.disabled = true;
+  btn.textContent = '재제출 중...';
+
+  try{
+    const payload = {
+      id,
+      event_name: eventEl ? eventEl.value.trim() : undefined,
+      event_date: eventDateEl ? eventDateEl.value : undefined,
+      event_location: locationEl ? locationEl.value.trim() : undefined,
+      needed_date: neededDateEl ? neededDateEl.value : undefined,
+      purchaser_name: purchaserEl ? purchaserEl.value.trim() : undefined,
+      purchaser_phone: purchaserPhoneEl ? purchaserPhoneEl.value.trim() : undefined,
+      delivery_address: addressEl ? addressEl.value.trim() : undefined,
+    };
+    if(planFile) payload.plan_file = fileToPayload(planFile, await readFileAsDataUrl(planFile));
+    if(purchaseFile) payload.purchase_file = fileToPayload(purchaseFile, await readFileAsDataUrl(purchaseFile));
+
+    const result = await postToBackend('resubmitRequest', payload);
+    if(!result.ok){
+      toast('재제출에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    toast('수정해서 다시 제출했어요. 담당자 승인을 기다려주세요.');
+    await refreshData();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '재제출';
+  }
+}
+
+async function handleSavePurchase(id){
+  const checkboxEl = document.querySelector(`[data-purchased-for="${CSS.escape(id)}"]`);
+  const amountEl = document.querySelector(`[data-amount-for="${CSS.escape(id)}"]`);
+  const purchased = checkboxEl && checkboxEl.checked ? 'Y' : 'N';
+  const amount = amountEl && amountEl.value ? Number(amountEl.value) : '';
+  if(purchased === 'Y' && !amount){
+    toast('구매 완료로 표시하려면 최종 구매 금액을 입력해주세요.');
+    return;
+  }
+  const result = await postToBackend('updateRequest', { id, purchased, final_amount: amount });
+  if(!result.ok){
+    toast('저장에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+    return;
+  }
+  toast('구매 정보를 저장했어요.');
+  await refreshData();
+}
+
+async function handleConfirmEvidence(id){
+  const result = await postToBackend('confirmEvidence', { id });
+  if(!result.ok){
+    toast('확인 처리에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+    return;
+  }
+  toast('증빙자료를 확인 완료로 표시했어요.');
+  await refreshData();
+}
+
+async function handleEditEvidence(id){
+  const esc = CSS.escape(id);
+  const eventEl = document.querySelector(`[data-ev-event="${esc}"]`);
+  const eventDateEl = document.querySelector(`[data-ev-eventdate="${esc}"]`);
+  const locationEl = document.querySelector(`[data-ev-location="${esc}"]`);
+  const fileDefs = [
+    { key:'biznum', el: document.querySelector(`[data-ev-biznum="${esc}"]`) },
+    { key:'bankbook', el: document.querySelector(`[data-ev-bankbook="${esc}"]`) },
+    { key:'quote', el: document.querySelector(`[data-ev-quote="${esc}"]`) },
+    { key:'statement', el: document.querySelector(`[data-ev-statement="${esc}"]`) },
+    { key:'report', el: document.querySelector(`[data-ev-report="${esc}"]`) },
+  ];
+  const files = fileDefs.map(d => ({ key: d.key, file: d.el && d.el.files[0] ? d.el.files[0] : null }));
+  const oversized = files.map(f=>f.file).filter(Boolean).find(f=>f.size > MAX_FILE_BYTES);
+  if(oversized){
+    toast('파일 용량이 너무 커요. 각 파일은 3.5MB 이하로 첨부해주세요.');
+    return;
+  }
+
+  const btn = document.querySelector(`[data-ev-save="${esc}"]`);
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+
+  try{
+    const payload = {
+      id,
+      event_name: eventEl ? eventEl.value.trim() : undefined,
+      event_date: eventDateEl ? eventDateEl.value : undefined,
+      location: locationEl ? locationEl.value.trim() : undefined,
+    };
+    for(const f of files){
+      if(f.file){
+        payload[f.key+'_file'] = fileToPayload(f.file, await readFileAsDataUrl(f.file));
+      }
+    }
+    const result = await postToBackend('updateEvidence', payload);
+    if(!result.ok){
+      toast('수정에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    toast('증빙자료를 수정했어요.');
+    await refreshData();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '저장';
+  }
+}
+
+document.getElementById('reviewFilterStatus').addEventListener('change', renderReviewList);
+
+/* ---------- Evidence tab ---------- */
+document.getElementById('evidenceForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const docInputs = [
+    { key:'biznum', label:'업체 사업자등록증', file: document.getElementById('e_doc_biznum').files[0] || null },
+    { key:'bankbook', label:'업체 통장 사본', file: document.getElementById('e_doc_bankbook').files[0] || null },
+    { key:'quote', label:'견적서', file: document.getElementById('e_doc_quote').files[0] || null },
+    { key:'statement', label:'거래명세서', file: document.getElementById('e_doc_statement').files[0] || null },
+  ];
+  const reportFile = document.getElementById('e_report').files[0] || null;
+
+  const allFiles = [...docInputs.map(d=>d.file), reportFile].filter(Boolean);
+  const oversized = allFiles.find(f=>f.size > MAX_FILE_BYTES);
+  if(oversized){
+    toast('파일 용량이 너무 커요. 각 파일은 3.5MB 이하로 첨부해주세요.');
+    return;
+  }
+
+  const submitBtn = e.target.querySelector('button[type=submit]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '제출 중...';
+
+  try{
+    const payload = {
+      event_name: document.getElementById('e_event').value.trim(),
+      event_date: document.getElementById('e_eventdate').value,
+      location: document.getElementById('e_location').value.trim(),
+    };
+    for(const d of docInputs){
+      if(!d.file){ payload[d.key+'_file'] = null; continue; }
+      const dataUrl = await readFileAsDataUrl(d.file);
+      payload[d.key+'_file'] = fileToPayload(d.file, dataUrl);
+    }
+    if(reportFile){
+      const dataUrl = await readFileAsDataUrl(reportFile);
+      payload.report_file = fileToPayload(reportFile, dataUrl);
+    } else {
+      payload.report_file = null;
+    }
+
+    const result = await postToBackend('submitEvidence', payload);
+    if(!result.ok){
+      toast('증빙자료 제출에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+
+    e.target.reset();
+    ['dropBiznum','dropBankbook','dropQuote','dropStatement','reportDropLabel'].forEach(id=>{
+      document.getElementById(id).textContent = '선택된 파일이 없어요';
+      document.getElementById(id).classList.remove('has-file');
+    });
+    toast('증빙자료를 제출했어요.');
+    await refreshData();
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '증빙자료 제출';
+  }
+});
+
+/* ---------- Booking (대관 신청) ---------- */
+document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const startTime = document.getElementById('bk_start').value;
+  const endTime = document.getElementById('bk_end').value;
+  if(startTime && endTime && startTime >= endTime){
+    toast('종료시간은 시작시간보다 늦어야 해요.');
+    return;
+  }
+  const submitBtn = e.target.querySelector('button[type=submit]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '제출 중...';
+  try{
+    const payload = {
+      venue: document.getElementById('bk_venue').value.trim(),
+      event_name: document.getElementById('bk_event').value.trim(),
+      date: document.getElementById('bk_date').value,
+      start_time: startTime,
+      end_time: endTime,
+      requester_name: document.getElementById('bk_requester').value.trim(),
+      requester_phone: document.getElementById('bk_phone').value.trim(),
+      purpose: document.getElementById('bk_purpose').value.trim(),
+    };
+    const result = await postToBackend('submitBooking', payload);
+    if(!result.ok){
+      toast('대관 신청에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    e.target.reset();
+    toast(result.warning ? result.warning : '대관 신청을 제출했어요.');
+    await refreshData();
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '대관 신청';
+  }
+});
+
+function renderBookingList(){
+  const filter = document.getElementById('bookingFilterStatus').value;
+  const el = document.getElementById('bookingList');
+  const list = STATE.bookings
+    .filter(b => !filter || b.status === filter)
+    .slice()
+    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  if(list.length===0){
+    el.innerHTML = `<div class="card empty"><div class="glyph">🏫</div>대관 신청 내역이 없어요.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(b=>{
+    const status = b.status || '대기';
+    return `
+    <div class="card req-item" data-id="${escapeHtml(b.id)}">
+      <div class="top-row">
+        <span class="event">${escapeHtml(b.venue)} — ${escapeHtml(b.event_name)}</span>
+        <span class="cat">${catName(b.category)}</span>
+        <span class="status-pill ${status}">${status}</span>
+      </div>
+      <div class="meta">
+        <span>날짜 ${b.date||'-'}</span>
+        <span>시간 ${b.start_time||'-'} ~ ${b.end_time||'-'}</span>
+        <span>제출일 ${b.submitted_at||'-'}</span>
+      </div>
+      <div class="meta">
+        <span>신청자 ${escapeHtml(b.requester_name||'-')}</span>
+        <span>연락처 ${escapeHtml(b.requester_phone||'-')}</span>
+        ${b.purpose ? `<span>비고 ${escapeHtml(b.purpose)}</span>` : ''}
+      </div>
+      ${status === '반려' && b.review_comment ? `<div class="meta" style="color:var(--red);">반려 사유: ${escapeHtml(b.review_comment)}</div>` : ''}
+      ${status === '대기' && STATE.isAdmin ? `
+      <div class="review-panel">
+        <textarea placeholder="승인 시 코멘트(선택) · 반려 시 사유(필수)" data-bk-comment-for="${escapeHtml(b.id)}"></textarea>
+        <button class="btn approve small" data-bk-approve="${escapeHtml(b.id)}">승인</button>
+        <button class="btn reject small" data-bk-reject="${escapeHtml(b.id)}">반려</button>
+      </div>` : ''}
+      ${status === '대기' && !STATE.isAdmin ? `<div class="meta">담당자 승인을 기다리고 있어요.</div>` : ''}
+    </div>
+  `;}).join('');
+
+  el.querySelectorAll('[data-bk-approve]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleBookingReview(btn.getAttribute('data-bk-approve'), '승인'));
+  });
+  el.querySelectorAll('[data-bk-reject]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleBookingReview(btn.getAttribute('data-bk-reject'), '반려'));
+  });
+}
+
+async function handleBookingReview(id, status){
+  const commentEl = document.querySelector(`[data-bk-comment-for="${CSS.escape(id)}"]`);
+  const comment = commentEl ? commentEl.value.trim() : '';
+  if(status === '반려' && !comment){
+    toast('반려 사유를 입력해주세요.');
+    if(commentEl) commentEl.focus();
+    return;
+  }
+  const result = await postToBackend('updateBooking', { id, status, reviewed_by: STATE.myName || '', review_comment: comment });
+  if(!result.ok){
+    toast('처리에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+    return;
+  }
+  toast(status === '승인' ? '대관을 승인했어요.' : '대관을 반려했어요.');
+  await refreshData();
+}
+
+document.getElementById('bookingFilterStatus').addEventListener('change', renderBookingList);
+
+/* ---------- Schedule (일정 공유) ---------- */
+document.getElementById('scheduleForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const submitBtn = e.target.querySelector('button[type=submit]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '등록 중...';
+  try{
+    const payload = {
+      event_name: document.getElementById('sc_event').value.trim(),
+      date: document.getElementById('sc_date').value,
+      start_time: document.getElementById('sc_start').value,
+      end_time: document.getElementById('sc_end').value,
+      venue: document.getElementById('sc_venue').value.trim(),
+      description: document.getElementById('sc_desc').value.trim(),
+    };
+    const result = await postToBackend('submitEvent', payload);
+    if(!result.ok){
+      toast('일정 등록에 실패했어요: ' + (result.error || '알 수 없는 오류'));
+      return;
+    }
+    e.target.reset();
+    toast('일정을 등록했어요.');
+    await refreshData();
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '일정 등록';
+  }
+});
+
+function renderScheduleList(){
+  const el = document.getElementById('scheduleList');
+  const list = STATE.events.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  if(list.length===0){
+    el.innerHTML = `<div class="card empty"><div class="glyph">🗓️</div>등록된 일정이 없어요.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(ev=>`
+    <div class="card req-item">
+      <div class="top-row">
+        <span class="event">${escapeHtml(ev.event_name)}</span>
+        <span class="cat">${catName(ev.category)}</span>
+      </div>
+      <div class="meta">
+        <span>날짜 ${ev.date||'-'}</span>
+        ${ev.start_time ? `<span>시간 ${ev.start_time}${ev.end_time ? ' ~ ' + ev.end_time : ''}</span>` : ''}
+        ${ev.venue ? `<span>장소 ${escapeHtml(ev.venue)}</span>` : ''}
+      </div>
+      ${ev.description ? `<div class="meta">${escapeHtml(ev.description)}</div>` : ''}
+      <div class="meta">등록: ${escapeHtml(ev.created_by||'-')} · ${ev.created_at||'-'}</div>
+    </div>
+  `).join('');
+}
+
+function renderEvidenceList(){
+  const el = document.getElementById('evidenceList');
+  const list = STATE.evidence.slice().sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||'')));
+  if(list.length===0){
+    el.innerHTML = `<div class="card empty"><div class="glyph">🗂️</div>아직 제출된 증빙자료가 없어요.</div>`;
+    return;
+  }
+  const docDefs = [
+    {key:'biznum', label:'업체 사업자등록증'},
+    {key:'bankbook', label:'업체 통장 사본'},
+    {key:'quote', label:'견적서'},
+    {key:'statement', label:'거래명세서'},
+  ];
+  el.innerHTML = list.map(ev=>{
+    const isConfirmed = ev.confirmed === 'Y' || ev.confirmed === true || ev.confirmed === 'TRUE';
+    return `
+    <div class="card req-item" data-id="${escapeHtml(ev.id)}">
+      <div class="top-row">
+        <span class="event">${escapeHtml(ev.event_name)}</span>
+        ${STATE.isAdmin ? `<span class="cat">${catName(ev.category)}</span>` : ''}
+        <span class="status-pill ${isConfirmed ? '승인' : '대기'}">${isConfirmed ? '확인완료' : '확인 대기'}</span>
+      </div>
+      <div class="meta">
+        <span>행사일자 ${ev.event_date||'-'}</span>
+        <span>행사 장소 ${escapeHtml(ev.location||'-')}</span>
+        <span>제출일 ${ev.submitted_at||'-'}</span>
+      </div>
+      <div class="file-group">
+        ${docDefs.map(d=> ev[d.key+'_file_url'] ? `<a class="file-link" href="${escapeHtml(ev[d.key+'_file_url'])}" target="_blank" rel="noopener">📎 ${d.label}: ${escapeHtml(ev[d.key+'_file_name']||'')}</a>` : '').join('')}
+        ${ev.report_file_url ? `<a class="file-link" href="${escapeHtml(ev.report_file_url)}" target="_blank" rel="noopener">📄 결과보고서: ${escapeHtml(ev.report_file_name||'')}</a>` : `<span class="muted">결과보고서 없음</span>`}
+      </div>
+      ${isConfirmed ? `<div class="meta">${escapeHtml(ev.confirmed_by||'')}님이 ${ev.confirmed_at||''}에 확인했어요.</div>` : ''}
+      ${!isConfirmed && STATE.isAdmin ? `
+      <div class="review-panel">
+        <button class="btn approve small" data-confirm-evidence="${escapeHtml(ev.id)}">확인 완료로 표시</button>
+      </div>` : ''}
+      ${!isConfirmed && !STATE.isAdmin ? `
+      <div class="review-panel">
+        <button class="btn outline small" data-edit-toggle="${escapeHtml(ev.id)}">내용 수정하기</button>
+      </div>
+      <div class="resubmit-form" id="resubmit-${escapeHtml(ev.id)}" style="display:none;">
+        <div class="field-row">
+          <div class="field"><label>행사명</label><input type="text" data-ev-event="${escapeHtml(ev.id)}" value="${escapeHtml(ev.event_name)}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>행사일자</label><input type="date" data-ev-eventdate="${escapeHtml(ev.id)}" value="${ev.event_date||''}"></div>
+          <div class="field"><label>행사 장소</label><input type="text" data-ev-location="${escapeHtml(ev.id)}" value="${escapeHtml(ev.location||'')}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>업체 사업자등록증 <span class="hint">(선택, 안 하면 기존 파일 유지)</span></label><input type="file" data-ev-biznum="${escapeHtml(ev.id)}"></div>
+          <div class="field"><label>업체 통장 사본 <span class="hint">(선택)</span></label><input type="file" data-ev-bankbook="${escapeHtml(ev.id)}"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>견적서 <span class="hint">(선택)</span></label><input type="file" data-ev-quote="${escapeHtml(ev.id)}"></div>
+          <div class="field"><label>거래명세서 <span class="hint">(선택)</span></label><input type="file" data-ev-statement="${escapeHtml(ev.id)}"></div>
+        </div>
+        <div class="field-row single">
+          <div class="field"><label>결과보고서 <span class="hint">(선택)</span></label><input type="file" data-ev-report="${escapeHtml(ev.id)}"></div>
+        </div>
+        <button class="btn small" data-ev-save="${escapeHtml(ev.id)}">저장</button>
+      </div>` : ''}
+    </div>
+  `;}).join('');
+
+  el.querySelectorAll('[data-confirm-evidence]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleConfirmEvidence(btn.getAttribute('data-confirm-evidence')));
+  });
+  el.querySelectorAll('[data-edit-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-edit-toggle');
+      const form = document.getElementById('resubmit-'+id);
+      if(form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+  el.querySelectorAll('[data-ev-save]').forEach(btn=>{
+    btn.addEventListener('click', ()=>handleEditEvidence(btn.getAttribute('data-ev-save')));
+  });
+}
+
+function renderMyStatusTable(){
+  const theadRow = document.getElementById('statusTableHead');
+  const baseCols = ['신청일','행사명','진행상태','증빙서류','결과보고서','최종 금액'];
+  const cols = STATE.isAdmin ? ['계열', ...baseCols] : baseCols;
+  theadRow.innerHTML = cols.map(c=>`<th>${c}</th>`).join('');
+
+  const tbody = document.querySelector('#myStatusTable tbody');
+  const list = STATE.requests.slice().sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||'')));
+  if(list.length===0){
+    tbody.innerHTML = `<tr><td colspan="${cols.length}" class="empty">아직 제출한 예산 신청서가 없어요.</td></tr>`;
+    return;
+  }
+  const docKeys = ['biznum_file_url','bankbook_file_url','quote_file_url','statement_file_url'];
+  tbody.innerHTML = list.map(r=>{
+    const status = r.status || '대기';
+    const ev = STATE.evidence.find(e => e.event_name === r.event_name && e.category === r.category);
+    const docCount = ev ? docKeys.filter(k => ev[k]).length : 0;
+    const docsBadge = !ev ? `<span class="badge 미제출">미제출</span>`
+      : docCount === docKeys.length ? `<span class="badge 제출완료">제출완료 (${docCount}/4)</span>`
+      : `<span class="badge 미제출">일부 제출 (${docCount}/4)</span>`;
+    const reportBadge = (ev && ev.report_file_url) ? `<span class="badge 제출완료">제출완료</span>` : `<span class="badge 미제출">미제출</span>`;
+    const amountText = (status==='승인' && isPurchased(r) && r.final_amount) ? `<span class="amt">${fmt(r.final_amount)}</span>` : '-';
+    const catCell = STATE.isAdmin ? `<td>${catName(r.category)}</td>` : '';
+    return `
+      <tr>
+        ${catCell}
+        <td class="num">${r.submitted_at||'-'}</td>
+        <td>${escapeHtml(r.event_name)}</td>
+        <td><span class="badge ${status}">${status}</span></td>
+        <td>${docsBadge}</td>
+        <td>${reportBadge}</td>
+        <td>${amountText}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ---------- Data refresh ---------- */
+async function refreshData(){
+  const [reqRes, evRes, bkRes, scRes] = await Promise.all([
+    postToBackend('listRequests', {}),
+    postToBackend('listEvidence', {}),
+    postToBackend('listBookings', {}),
+    postToBackend('listEvents', {}),
+  ]);
+  if(reqRes.ok){ STATE.requests = reqRes.data || []; }
+  else { toast('제출 내역을 불러오지 못했어요: ' + (reqRes.error || '알 수 없는 오류')); }
+  if(evRes.ok){ STATE.evidence = evRes.data || []; }
+  else { toast('증빙자료 내역을 불러오지 못했어요: ' + (evRes.error || '알 수 없는 오류')); }
+  if(bkRes.ok){ STATE.bookings = bkRes.data || []; }
+  else { toast('대관 신청 내역을 불러오지 못했어요: ' + (bkRes.error || '알 수 없는 오류')); }
+  if(scRes.ok){ STATE.events = scRes.data || []; }
+  else { toast('일정 내역을 불러오지 못했어요: ' + (scRes.error || '알 수 없는 오류')); }
+  renderDashboard();
+  renderReviewList();
+  renderEvidenceList();
+  renderMyStatusTable();
+  renderBookingList();
+  renderScheduleList();
+  populateEventDatalist();
+}
+
+function boot(){
+  populateFixedCategory();
+  renderDashboard();
+  refreshData();
+}
+</script>
+</body>
+</html>
