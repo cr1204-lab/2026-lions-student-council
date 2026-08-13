@@ -158,6 +158,7 @@
   .req-item .event{ font-weight:800; font-size:16px; }
   .req-item .cat{ font-size:11.5px; color:var(--brass-deep); font-weight:700; }
   .req-item .meta{ font-size:13.5px; color:#454438; margin-top:10px; display:flex; flex-wrap:wrap; column-gap:28px; row-gap:8px; align-items:baseline; line-height:1.7; padding-bottom:10px; border-bottom:1px dashed var(--line); }
+  .req-item .meta .meta-label{ font-weight:700; color:var(--ink-soft); font-size:11.5px; letter-spacing:.01em; margin-right:2px; }
   .req-item .meta:last-of-type{ border-bottom:none; padding-bottom:0; }
   .req-item .file-group{ margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; }
 
@@ -779,6 +780,10 @@ function escapeHtml(s){
   if(s===undefined||s===null) return '';
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+// Renders a "라벨 값" pair with the label visually set apart, so info rows are easier to scan.
+function metaItem(label, value){
+  return `<span><b class="meta-label">${label}</b> ${value}</span>`;
+}
 function readFileAsDataUrl(file){
   return new Promise((resolve, reject)=>{
     const r = new FileReader();
@@ -1128,15 +1133,15 @@ function renderReviewList(){
         <span class="status-pill ${status}">${status}</span>
       </div>
       <div class="meta">
-        <span>사용 예정일 ${r.event_date||'-'}</span>
-        <span>행사 장소 ${escapeHtml(r.event_location||'-')}</span>
-        <span>구매 필요일 ${r.needed_date||'-'}</span>
-        <span>제출일 ${r.submitted_at||'-'}</span>
+        ${metaItem('사용 예정일', r.event_date||'-')}
+        ${metaItem('행사 장소', escapeHtml(r.event_location||'-'))}
+        ${metaItem('구매 필요일', r.needed_date||'-')}
+        ${metaItem('제출일', r.submitted_at||'-')}
       </div>
       <div class="meta">
-        <span>구매자 ${escapeHtml(r.purchaser_name||'-')}</span>
-        <span>연락처 ${escapeHtml(r.purchaser_phone||'-')}</span>
-        ${r.delivery_address ? `<span>배송 장소 ${escapeHtml(r.delivery_address)}</span>` : ''}
+        ${metaItem('구매자', escapeHtml(r.purchaser_name||'-'))}
+        ${metaItem('연락처', escapeHtml(r.purchaser_phone||'-'))}
+        ${r.delivery_address ? metaItem('배송 장소', escapeHtml(r.delivery_address)) : ''}
       </div>
       <div class="file-group">
         ${r.plan_file_url ? `<a class="file-link" href="${escapeHtml(r.plan_file_url)}" target="_blank" rel="noopener">📄 기획안: ${escapeHtml(r.plan_file_name||'')}</a>` : `<span class="muted">기획안 없음</span>`}
@@ -1516,15 +1521,15 @@ function renderBookingList(){
         <span class="status-pill ${status}">${status}</span>
       </div>
       <div class="meta">
-        <span>날짜 ${dateLabel}</span>
-        <span>시간 ${b.start_time||'-'} ~ ${b.end_time||'-'}</span>
-        <span>제출일 ${b.submitted_at||'-'}</span>
+        ${metaItem('날짜', dateLabel)}
+        ${metaItem('시간', (b.start_time||'-') + ' ~ ' + (b.end_time||'-'))}
+        ${metaItem('제출일', b.submitted_at||'-')}
       </div>
       <div class="meta">
-        <span>신청자 ${escapeHtml(b.requester_name||'-')}</span>
-        <span>연락처 ${escapeHtml(b.requester_phone||'-')}</span>
-        <span>행사 인원 ${b.headcount ? escapeHtml(String(b.headcount)) + '명' : '-'}</span>
-        ${b.purpose ? `<span>비고 ${escapeHtml(b.purpose)}</span>` : ''}
+        ${metaItem('신청자', escapeHtml(b.requester_name||'-'))}
+        ${metaItem('연락처', escapeHtml(b.requester_phone||'-'))}
+        ${metaItem('행사 인원', b.headcount ? escapeHtml(String(b.headcount)) + '명' : '-')}
+        ${b.purpose ? metaItem('비고', escapeHtml(b.purpose)) : ''}
       </div>
       ${status === '반려' && b.review_comment ? `<div class="meta" style="color:var(--red);">반려 사유: ${escapeHtml(b.review_comment)}</div>` : ''}
       ${status === '대기' && STATE.isAdmin ? `
@@ -1619,12 +1624,12 @@ function renderScheduleList(){
         </div>
       </div>
       <div class="meta">
-        <span>날짜 ${dateLabel}</span>
-        ${ev.start_time ? `<span>시간 ${ev.start_time}${ev.end_time ? ' ~ ' + ev.end_time : ''}</span>` : ''}
-        ${ev.venue ? `<span>장소 ${escapeHtml(ev.venue)}</span>` : ''}
+        ${metaItem('날짜', dateLabel)}
+        ${ev.start_time ? metaItem('시간', ev.start_time + (ev.end_time ? ' ~ ' + ev.end_time : '')) : ''}
+        ${ev.venue ? metaItem('장소', escapeHtml(ev.venue)) : ''}
       </div>
       ${ev.description ? `<div class="meta">${escapeHtml(ev.description)}</div>` : ''}
-      <div class="meta">등록: ${escapeHtml(ev.created_by||'-')} · ${ev.created_at||'-'}</div>
+      <div class="meta">${metaItem('등록', escapeHtml(ev.created_by||'-') + ' · ' + (ev.created_at||'-'))}</div>
       ${canEdit ? `
       <div class="review-panel">
         <button class="btn outline small" data-ev-edit-toggle="${escapeHtml(ev.id)}">일정 수정하기</button>
@@ -1783,9 +1788,9 @@ function renderEvidenceList(){
         <span class="status-pill ${isConfirmed ? '승인' : '대기'}">${isConfirmed ? '확인완료' : '확인 대기'}</span>
       </div>
       <div class="meta">
-        <span>행사일자 ${ev.event_date||'-'}</span>
-        <span>행사 장소 ${escapeHtml(ev.location||'-')}</span>
-        <span>제출일 ${ev.submitted_at||'-'}</span>
+        ${metaItem('행사일자', ev.event_date||'-')}
+        ${metaItem('행사 장소', escapeHtml(ev.location||'-'))}
+        ${metaItem('제출일', ev.submitted_at||'-')}
       </div>
       <div class="file-group">
         ${docDefs.map(d=> ev[d.key+'_file_url'] ? `<a class="file-link" href="${escapeHtml(ev[d.key+'_file_url'])}" target="_blank" rel="noopener">📎 ${d.label}: ${escapeHtml(ev[d.key+'_file_name']||'')}</a>` : '').join('')}
