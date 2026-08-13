@@ -215,6 +215,7 @@
   .login-card input{ width:100%; margin-bottom:10px; box-sizing:border-box; }
   .login-card .btn{ width:100%; }
   .login-error{ margin-top:14px; font-size:12px; color:var(--red); font-weight:700; display:none; }
+  .capslock-warning{ margin:-4px 0 10px; font-size:12px; color:var(--amber); font-weight:700; text-align:left; display:none; }
   #appRoot{ display:none; }
 </style>
 </head>
@@ -225,6 +226,7 @@
     <h2>🔒 학생회 대표 전용</h2>
     <p>담당 계열의 암호를 입력하면, 본인 계열의 예산만 볼 수 있어요.</p>
     <input type="password" id="loginPasscode" placeholder="계열 암호">
+    <div class="capslock-warning" id="capslockWarning">⚠ Caps Lock이 켜져 있어요</div>
     <button class="btn" id="loginBtn">입장하기</button>
     <div class="login-error" id="loginError"></div>
   </div>
@@ -687,6 +689,13 @@ function fileToPayload(file, dataUrl){
 }
 
 /* ---------- Login ---------- */
+document.getElementById('loginPasscode').addEventListener('keyup', (e)=>{
+  const warn = document.getElementById('capslockWarning');
+  if(typeof e.getModifierState === 'function'){
+    warn.style.display = e.getModifierState('CapsLock') ? 'block' : 'none';
+  }
+});
+
 async function attemptLogin(){
   const passcode = document.getElementById('loginPasscode').value;
   const errEl = document.getElementById('loginError');
